@@ -1,0 +1,197 @@
+/* app/styles/ratu-assets.css */
+
+.asset-img {
+  user-select: none;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+.ratu-logo-image {
+  width: 205px;
+  max-width: 100%;
+}
+
+.ratu-rat-sidebar {
+  width: 150px;
+  margin: 0 auto 8px;
+  display: block;
+}
+
+.ratu-rat-sleeping {
+  position: fixed;
+  right: 28px;
+  bottom: 14px;
+  width: 190px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.ratu-home-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(230px, 1fr));
+  gap: 22px;
+}
+
+.ratu-image-card {
+  position: relative;
+  min-height: 178px;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.ratu-image-card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: 0;
+}
+
+.ratu-image-card-content {
+  position: relative;
+  z-index: 1;
+  padding: 100px 30px 24px;
+}
+
+.ratu-image-card h3 {
+  margin: 0 0 8px;
+  color: #f4f4f6;
+  font-size: 24px;
+}
+
+.ratu-image-card p {
+  margin: 0 0 18px;
+  color: #b9bac2;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.ratu-card-button {
+  min-width: 135px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(8, 9, 12, .42);
+  color: #f4f4f6;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.ratu-card-button span {
+  color: #ffa6b1;
+  margin-left: 18px;
+  font-size: 20px;
+}
+
+.ratu-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(130px, 1fr));
+  gap: 14px;
+}
+
+.ratu-game-card {
+  position: relative;
+  min-height: 215px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.ratu-game-card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: 0;
+}
+
+.ratu-game-cover {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 22px);
+  height: 105px;
+  margin: 12px 11px 8px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.ratu-game-card h4 {
+  position: relative;
+  z-index: 1;
+  margin: 0 14px 3px;
+  color: #fff;
+  font-size: 15px;
+}
+
+.ratu-game-card p {
+  position: relative;
+  z-index: 1;
+  margin: 0 14px;
+  color: #aeb0b8;
+  font-size: 13px;
+}
+
+.ratu-emulator-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.ratu-emulator-mini {
+  position: relative;
+  min-height: 92px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.ratu-emulator-mini-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: 0;
+}
+
+.ratu-emulator-mini-icon {
+  position: relative;
+  z-index: 1;
+  width: 82px;
+  height: 70px;
+  object-fit: contain;
+  margin: 10px 14px;
+  float: left;
+}
+
+.ratu-emulator-mini h4 {
+  position: relative;
+  z-index: 1;
+  margin: 18px 10px 2px;
+  color: #fff;
+}
+
+.ratu-emulator-mini p {
+  position: relative;
+  z-index: 1;
+  margin: 0 10px;
+  color: #aeb0b8;
+  font-size: 13px;
+}
+
+.ratu-emulator-mini .status {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  color: #78d96d;
+  background: rgba(120,217,109,.15);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+/* Faz a imagem não brigar com o texto por código */
+.ratu-ui-text {
+  position: relative;
+  z-index: 3;
+}
