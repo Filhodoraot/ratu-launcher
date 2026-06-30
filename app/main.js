@@ -1,307 +1,295 @@
-import { RATU_ASSETS, getGameCover, getEmulatorImage } from "./data/ratu-assets.js";
+import { RATU_ASSETS, getGameCover, getEmulatorImage, getDisplayImage } from "./data/ratu-assets.js";
 
-const splash = document.getElementById("splash");
-const app = document.getElementById("app");
-const pageTitle = document.getElementById("pageTitle");
-const pageSubtitle = document.getElementById("pageSubtitle");
-const menuButtons = document.querySelectorAll(".menu-button");
+const $ = (id) => document.getElementById(id);
+
+const splash = $("splash");
+const app = $("app");
+const pageTitle = $("pageTitle");
+const pageSubtitle = $("pageSubtitle");
+const navItems = document.querySelectorAll(".nav-item");
 const pages = document.querySelectorAll(".page");
 
-const recentSavesGrid = document.getElementById("recentSavesGrid");
-const savesGrid = document.getElementById("savesGrid");
-const emptySaves = document.getElementById("emptySaves");
-const homeFeatureGrid = document.getElementById("homeFeatureGrid");
-const homeEmulatorsGrid = document.getElementById("homeEmulatorsGrid");
+const recentGamesGrid = $("recentGamesGrid");
+const homeFeatureGrid = $("homeFeatureGrid");
+const homeEmulatorsGrid = $("homeEmulatorsGrid");
+const foldersGrid = $("foldersGrid");
+const savesList = $("savesList");
+const emptySaves = $("emptySaves");
+const saveDetailPanel = $("saveDetailPanel");
+const emulatorList = $("emulatorList");
 
-const homeSaveCount = document.getElementById("homeSaveCount");
-const homeEmulatorCount = document.getElementById("homeEmulatorCount");
-const homeInstalledCount = document.getElementById("homeInstalledCount");
+const saveSearchInput = $("saveSearchInput");
+const filterRecentButton = $("filterRecentButton");
+const sortSelect = $("sortSelect");
 
-const quickAddButton = document.getElementById("quickAddButton");
-const homeAddRomButton = document.getElementById("homeAddRomButton");
-const homeContinueButton = document.getElementById("homeContinueButton");
-const homeEmulatorsButton = document.getElementById("homeEmulatorsButton");
-const viewAllSavesButton = document.getElementById("viewAllSavesButton");
-const savesAddRomButton = document.getElementById("savesAddRomButton");
-const emptyAddButton = document.getElementById("emptyAddButton");
+const viewAllSavesButton = $("viewAllSavesButton");
+const homeEmulatorsButton = $("homeEmulatorsButton");
+const savesAddRomButton = $("savesAddRomButton");
+const emptyAddButton = $("emptyAddButton");
+const uploadBox = $("uploadBox");
+const romInput = $("romInput");
+const coverInput = $("coverInput");
 
-const uploadBox = document.getElementById("uploadBox");
-const romInput = document.getElementById("romInput");
-const saveSearchInput = document.getElementById("saveSearchInput");
-const filterRecentButton = document.getElementById("filterRecentButton");
-const clearSearchButton = document.getElementById("clearSearchButton");
+const addEmulatorButton = $("addEmulatorButton");
+const resetDefaultEmulatorsButton = $("resetDefaultEmulatorsButton");
+const toast = $("toast");
 
-const emulatorList = document.getElementById("emulatorList");
-const addEmulatorButton = document.getElementById("addEmulatorButton");
-const resetDefaultEmulatorsButton = document.getElementById("resetDefaultEmulatorsButton");
-const toast = document.getElementById("toast");
+const STORAGE_LIBRARY = "ratu_library_assets_v1";
+const STORAGE_EMULATORS = "ratu_emulators_assets_v1";
 
-const STORAGE_LIBRARY = "ratu_library_v5";
-const STORAGE_EMULATORS = "ratu_emulators_v5";
-const OLD_STORAGE_LIBRARY = "ratu_library_v4";
-const OLD_STORAGE_EMULATORS = "ratu_emulators_v4";
-
-let currentSaveFilter = "all";
+let currentPage = "home";
 let currentSearch = "";
+let onlyRecent = false;
+let selectedGameId = "";
+let pendingCoverGameId = "";
 
 const pageInfo = {
   home: {
-    title: "Home",
-    subtitle: "Seu painel rápido do Ratu Launcher."
+    title: "Início",
+    subtitle: "Seu painel rápido do Ratu Launcher.",
   },
   saves: {
     title: "Saves",
-    subtitle: "Todos os seus jogos e três slots de save por ROM."
+    subtitle: "Gerencie, organize e sincronize seus saves.",
   },
   "new-rom": {
     title: "Nova ROM",
-    subtitle: "Adicione uma ROM e o Ratu cria o card na biblioteca."
-  },
-  emulators: {
-    title: "Emuladores",
-    subtitle: "Instale, configure ou remova os motores do launcher."
+    subtitle: "Adicione uma ROM e deixe o Ratu criar o card.",
   },
   about: {
     title: "Sobre",
-    subtitle: "Informações rápidas do Ratu Launcher."
-  }
+    subtitle: "Mais informações sobre o Ratu Launcher.",
+  },
+  emulators: {
+    title: "Emuladores",
+    subtitle: "Gerencie seus emuladores. Instale apenas os que você quer usar.",
+  },
 };
 
 const systemByExtension = {
   nes: { system: "NES", emulatorId: "nestopia", emulator: "FCEUX" },
   smc: { system: "SNES", emulatorId: "snes9x", emulator: "Mesen-S" },
   sfc: { system: "SNES", emulatorId: "snes9x", emulator: "Mesen-S" },
-  gb: { system: "Game Boy", emulatorId: "mgba", emulator: "mGBA" },
-  gbc: { system: "Game Boy Color", emulatorId: "mgba", emulator: "mGBA" },
-  gba: { system: "Game Boy Advance", emulatorId: "mgba", emulator: "mGBA" },
-  nds: { system: "Nintendo DS", emulatorId: "melonds", emulator: "melonDS" },
-  dsi: { system: "Nintendo DS", emulatorId: "melonds", emulator: "melonDS" },
-  n64: { system: "Nintendo 64", emulatorId: "mupen64plus", emulator: "Mupen64" },
-  z64: { system: "Nintendo 64", emulatorId: "mupen64plus", emulator: "Mupen64" },
-  v64: { system: "Nintendo 64", emulatorId: "mupen64plus", emulator: "Mupen64" },
-  cue: { system: "PlayStation", emulatorId: "duckstation", emulator: "DuckStation" },
-  bin: { system: "PlayStation", emulatorId: "duckstation", emulator: "DuckStation" },
-  iso: { system: "Disc Image", emulatorId: "duckstation", emulator: "DuckStation" },
-  "3ds": { system: "Nintendo 3DS", emulatorId: "azahar", emulator: "Azahar" },
-  cci: { system: "Nintendo 3DS", emulatorId: "azahar", emulator: "Azahar" },
-  cxi: { system: "Nintendo 3DS", emulatorId: "azahar", emulator: "Azahar" },
-  cia: { system: "Nintendo 3DS", emulatorId: "azahar", emulator: "Azahar" },
-  psp: { system: "PSP", emulatorId: "ppsspp", emulator: "PPSSPP" },
+
+  gb: { system: "GB", emulatorId: "mgba", emulator: "mGBA" },
+  gbc: { system: "GBC", emulatorId: "mgba", emulator: "mGBA" },
+  gba: { system: "GBA", emulatorId: "mgba", emulator: "mGBA" },
+
+  nds: { system: "DS", emulatorId: "melonds", emulator: "melonDS" },
+  dsi: { system: "DS", emulatorId: "melonds", emulator: "melonDS" },
+
+  n64: { system: "N64", emulatorId: "mupen64plus", emulator: "Mupen64Plus" },
+  z64: { system: "N64", emulatorId: "mupen64plus", emulator: "Mupen64Plus" },
+  v64: { system: "N64", emulatorId: "mupen64plus", emulator: "Mupen64Plus" },
+
+  "3ds": { system: "3DS", emulatorId: "azahar", emulator: "Azahar" },
+  cci: { system: "3DS", emulatorId: "azahar", emulator: "Azahar" },
+  cxi: { system: "3DS", emulatorId: "azahar", emulator: "Azahar" },
+  cia: { system: "3DS", emulatorId: "azahar", emulator: "Azahar" },
+
+  cue: { system: "PS1", emulatorId: "duckstation", emulator: "DuckStation" },
+  bin: { system: "PS1", emulatorId: "duckstation", emulator: "DuckStation" },
+
+  iso: { system: "PSP/PS1/Wii", emulatorId: "ppsspp", emulator: "PPSSPP" },
   cso: { system: "PSP", emulatorId: "ppsspp", emulator: "PPSSPP" },
+
   gcm: { system: "GameCube", emulatorId: "dolphin", emulator: "Dolphin" },
-  wbfs: { system: "Wii", emulatorId: "dolphin", emulator: "Dolphin" }
+  wbfs: { system: "Wii", emulatorId: "dolphin", emulator: "Dolphin" },
 };
 
 const defaultEmulators = [
   {
     id: "mgba",
     name: "mGBA",
-    systems: ["Game Boy Advance", "Game Boy", "Game Boy Color"],
     version: "0.10.3",
+    systems: ["GBA", "GB", "GBC"],
     status: "Pendente",
     exePath: "",
     folderPath: "",
     installUrl: "https://mgba.io/downloads.html",
-    wingetId: "JeffreyPfau.mGBA"
+    wingetId: "JeffreyPfau.mGBA",
   },
   {
     id: "melonds",
     name: "melonDS",
-    systems: ["Nintendo DS"],
-    version: "Atual",
+    version: "0.9.5",
+    systems: ["DS"],
     status: "Pendente",
     exePath: "",
     folderPath: "",
     installUrl: "https://melonds.kuribo64.net/downloads.php",
-    wingetId: "melonDS.melonDS"
-  },
-  {
-    id: "azahar",
-    name: "Azahar",
-    systems: ["Nintendo 3DS"],
-    version: "Atual",
-    status: "Pendente",
-    exePath: "",
-    folderPath: "",
-    installUrl: "https://azahar-emu.org/pages/download/",
-    wingetId: "AzaharEmu.Azahar"
+    wingetId: "melonDS.melonDS",
   },
   {
     id: "mupen64plus",
-    name: "Mupen64",
-    systems: ["Nintendo 64"],
-    version: "Atual",
+    name: "Mupen64Plus",
+    version: "2.5.9",
+    systems: ["N64"],
     status: "Pendente",
     exePath: "",
     folderPath: "",
     installUrl: "https://mupen64plus.org/",
-    wingetId: "Mupen64.Mupen64"
+    wingetId: "Mupen64.Mupen64",
   },
   {
-    id: "duckstation",
-    name: "DuckStation",
-    systems: ["PlayStation"],
-    version: "Atual",
+    id: "azahar",
+    name: "Azahar",
+    version: "2123",
+    systems: ["3DS"],
     status: "Pendente",
     exePath: "",
     folderPath: "",
-    installUrl: "https://duckstation.org/",
-    wingetId: "Stenzek.DuckStation"
+    installUrl: "https://azahar-emu.org/pages/download/",
+    wingetId: "AzaharEmu.Azahar",
   },
   {
     id: "snes9x",
-    name: "Mesen-S",
+    name: "Snes9x",
+    version: "1.63",
     systems: ["SNES"],
-    version: "Atual",
     status: "Pendente",
     exePath: "",
     folderPath: "",
-    installUrl: "https://github.com/SourMesen/Mesen-S",
-    wingetId: "SourMesen.Mesen-S"
-  },
-  {
-    id: "nestopia",
-    name: "FCEUX",
-    systems: ["NES"],
-    version: "Atual",
-    status: "Pendente",
-    exePath: "",
-    folderPath: "",
-    installUrl: "https://fceux.com/web/home.html",
-    wingetId: "FCEUX.FCEUX"
-  },
-  {
-    id: "ppsspp",
-    name: "PPSSPP",
-    systems: ["PSP"],
-    version: "Atual",
-    status: "Pendente",
-    exePath: "",
-    folderPath: "",
-    installUrl: "https://www.ppsspp.org/download/",
-    wingetId: "PPSSPPTeam.PPSSPP"
+    installUrl: "https://www.snes9x.com/",
+    wingetId: "Snes9x.Snes9x",
   },
   {
     id: "dolphin",
     name: "Dolphin",
+    version: "5.0",
     systems: ["GameCube", "Wii"],
-    version: "Atual",
     status: "Pendente",
     exePath: "",
     folderPath: "",
     installUrl: "https://dolphin-emu.org/download/",
-    wingetId: "DolphinEmulator.Dolphin"
-  }
+    wingetId: "DolphinEmulator.Dolphin",
+  },
+  {
+    id: "ppsspp",
+    name: "PPSSPP",
+    version: "1.17.1",
+    systems: ["PSP"],
+    status: "Pendente",
+    exePath: "",
+    folderPath: "",
+    installUrl: "https://www.ppsspp.org/download/",
+    wingetId: "PPSSPPTeam.PPSSPP",
+  },
+  {
+    id: "duckstation",
+    name: "DuckStation",
+    version: "0.1",
+    systems: ["PS1"],
+    status: "Pendente",
+    exePath: "",
+    folderPath: "",
+    installUrl: "https://duckstation.org/",
+    wingetId: "Stenzek.DuckStation",
+  },
+  {
+    id: "nestopia",
+    name: "FCEUX",
+    version: "2.6",
+    systems: ["NES"],
+    status: "Pendente",
+    exePath: "",
+    folderPath: "",
+    installUrl: "https://fceux.com/web/home.html",
+    wingetId: "FCEUX.FCEUX",
+  },
 ];
 
 startApp();
 
 async function startApp() {
-  await initializeData();
+  applyStaticImages();
+  seedStorage();
   setupEvents();
+  await loadTauriData();
 
   setTimeout(() => {
     splash.classList.add("hidden");
     app.classList.remove("hidden");
     setPage("home");
-    renderAll();
-  }, 700);
+  }, 400);
 }
 
-async function initializeData() {
-  seedStorage();
-
-  if (!isTauriReady()) {
-    return;
-  }
-
-  try {
-    await invokeRust("ensure_ratu_data_folder");
-
-    const libraryJson = await invokeRust("load_library_file");
-    const emulatorsJson = await invokeRust("load_emulators_file");
-
-    const library = normalizeLibrary(safeParseJson(libraryJson, getLibrary()));
-    const emulatorsFromFile = safeParseJson(emulatorsJson, getEmulators());
-
-    saveLibrary(library);
-    saveEmulators(mergeDefaultEmulators(emulatorsFromFile));
-
-    await persistLibrary(library);
-    await persistEmulators(getEmulators());
-  } catch (error) {
-    console.error(error);
-    showToast("Não consegui carregar os arquivos locais do Ratu.");
-  }
-}
-
-function seedStorage() {
-  if (!localStorage.getItem(STORAGE_LIBRARY)) {
-    const oldLibrary = readJson(OLD_STORAGE_LIBRARY, []);
-    saveLibrary(normalizeLibrary(Array.isArray(oldLibrary) ? oldLibrary : []));
-  }
-
-  if (!localStorage.getItem(STORAGE_EMULATORS)) {
-    const oldEmulators = readJson(OLD_STORAGE_EMULATORS, []);
-    saveEmulators(mergeDefaultEmulators(Array.isArray(oldEmulators) ? oldEmulators : []));
-  }
+function applyStaticImages() {
+  setImage("splashRat", RATU_ASSETS.geral.logoRat);
+  setImage("brandRat", RATU_ASSETS.geral.logoRat);
+  setImage("playerRat", RATU_ASSETS.geral.ratLeft);
+  setImage("homeSleepingRat", RATU_ASSETS.geral.sleepingRat);
+  setImage("uploadRat", RATU_ASSETS.geral.ratRight);
+  setImage("emulatorInfoRat", RATU_ASSETS.geral.ratRight);
+  setImage("tipRat", RATU_ASSETS.geral.ratLeft);
+  setImage("aboutRat", RATU_ASSETS.geral.logoRat);
+  setImage("aboutSleepingRat", RATU_ASSETS.geral.sleepingRat);
 }
 
 function setupEvents() {
-  menuButtons.forEach((button) => {
+  navItems.forEach((button) => {
     button.addEventListener("click", () => setPage(button.dataset.page));
   });
 
-  quickAddButton.addEventListener("click", () => setPage("new-rom"));
-  homeAddRomButton.addEventListener("click", () => setPage("new-rom"));
-  savesAddRomButton.addEventListener("click", () => setPage("new-rom"));
-  emptyAddButton.addEventListener("click", () => setPage("new-rom"));
   viewAllSavesButton.addEventListener("click", () => setPage("saves"));
   homeEmulatorsButton.addEventListener("click", () => setPage("emulators"));
-  homeContinueButton.addEventListener("click", () => continueLastSave());
-  addEmulatorButton.addEventListener("click", () => addCustomEmulator());
-  resetDefaultEmulatorsButton.addEventListener("click", () => resetAndRepairDefaultEmulators());
+  savesAddRomButton.addEventListener("click", () => setPage("new-rom"));
+  emptyAddButton.addEventListener("click", () => setPage("new-rom"));
 
-  uploadBox.addEventListener("click", () => selectRomWithDialog());
+  uploadBox.addEventListener("click", selectRom);
   uploadBox.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") selectRomWithDialog();
+    if (event.key === "Enter" || event.key === " ") selectRom();
   });
 
   romInput.addEventListener("change", () => {
-    const file = romInput.files[0];
+    const file = romInput.files?.[0];
     if (!file) return;
+
     addRomFromBrowserFile(file);
     romInput.value = "";
   });
 
+  coverInput.addEventListener("change", () => {
+    const file = coverInput.files?.[0];
+    if (!file || !pendingCoverGameId) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setGameCover(pendingCoverGameId, String(reader.result));
+      pendingCoverGameId = "";
+      coverInput.value = "";
+    };
+
+    reader.readAsDataURL(file);
+  });
+
   saveSearchInput.addEventListener("input", () => {
     currentSearch = saveSearchInput.value.trim().toLowerCase();
-    renderSaves();
+    renderSavesPage();
   });
 
   filterRecentButton.addEventListener("click", () => {
-    currentSaveFilter = currentSaveFilter === "recent" ? "all" : "recent";
-    filterRecentButton.textContent = currentSaveFilter === "recent" ? "Todos" : "Recentes";
-    renderSaves();
+    onlyRecent = !onlyRecent;
+    filterRecentButton.textContent = onlyRecent ? "Todos" : "Filtros";
+    renderSavesPage();
   });
 
-  clearSearchButton.addEventListener("click", () => {
-    currentSearch = "";
-    currentSaveFilter = "all";
-    saveSearchInput.value = "";
-    filterRecentButton.textContent = "Recentes";
-    renderSaves();
-  });
+  sortSelect.addEventListener("change", renderSavesPage);
+
+  addEmulatorButton.addEventListener("click", addCustomEmulator);
+  resetDefaultEmulatorsButton.addEventListener("click", resetEmulators);
 }
 
 function setPage(pageName) {
   const info = pageInfo[pageName];
   if (!info) return;
 
+  currentPage = pageName;
   pageTitle.textContent = info.title;
   pageSubtitle.textContent = info.subtitle;
 
-  menuButtons.forEach((button) => {
+  navItems.forEach((button) => {
     button.classList.toggle("active", button.dataset.page === pageName);
   });
 
@@ -314,21 +302,13 @@ function setPage(pageName) {
 
 function renderAll() {
   renderHome();
-  renderSaves();
+  renderSavesPage();
   renderEmulators();
 }
 
 function renderHome() {
-  const library = getLibrary();
-  const emulators = getEmulators();
-  const installed = emulators.filter((item) => item.exePath).length;
-
-  homeSaveCount.textContent = String(library.length);
-  homeEmulatorCount.textContent = String(emulators.length);
-  homeInstalledCount.textContent = String(installed);
-
   renderHomeFeatureCards();
-  renderRecentSaves();
+  renderRecentGames();
   renderHomeEmulators();
 }
 
@@ -336,36 +316,36 @@ function renderHomeFeatureCards() {
   const cards = [
     {
       title: "Saves",
-      desc: "Gerencie seus jogos e três slots por ROM.",
-      button: "Abrir",
+      desc: "Gerencie e organize seus arquivos de jogo.",
+      action: "Abrir",
       page: "saves",
-      bg: RATU_ASSETS.home.cardSaves
+      img: RATU_ASSETS.home.cardSaves,
     },
     {
       title: "Nova ROM",
-      desc: "Adicione um jogo novo na biblioteca.",
-      button: "Adicionar",
+      desc: "Adicione uma nova ROM e comece a jogar.",
+      action: "Adicionar ROM",
       page: "new-rom",
-      bg: RATU_ASSETS.home.cardNovaRom
+      img: RATU_ASSETS.home.cardNovaRom,
     },
     {
       title: "Sobre",
-      desc: "Veja como o Ratu Launcher funciona.",
-      button: "Abrir",
+      desc: "Saiba mais sobre o Ratu Launcher.",
+      action: "Abrir",
       page: "about",
-      bg: RATU_ASSETS.home.cardSobre
-    }
+      img: RATU_ASSETS.home.cardSobre,
+    },
   ];
 
   homeFeatureGrid.innerHTML = cards.map((card) => `
-    <article class="feature-card">
-      <img src="${card.bg}" alt="" loading="lazy" />
-      <div class="feature-card-content">
+    <button class="home-feature-card" data-page-go="${card.page}">
+      <img class="card-bg-img" src="${escapeAttr(card.img)}" alt="" />
+      <div class="card-content">
         <h3>${escapeHtml(card.title)}</h3>
         <p>${escapeHtml(card.desc)}</p>
-        <button class="secondary-button" data-page-go="${card.page}" type="button">${escapeHtml(card.button)} →</button>
       </div>
-    </article>
+      <span class="mini-action">${escapeHtml(card.action)} <b>→</b></span>
+    </button>
   `).join("");
 
   homeFeatureGrid.querySelectorAll("[data-page-go]").forEach((button) => {
@@ -373,270 +353,413 @@ function renderHomeFeatureCards() {
   });
 }
 
-function renderRecentSaves() {
+function renderRecentGames() {
   const library = getLibrary().slice(0, 6);
 
   if (library.length === 0) {
-    recentSavesGrid.innerHTML = `
-      <section class="empty-state">
-        <div class="empty-rat">🐁</div>
-        <h2>Nenhum save recente</h2>
-        <p>Adicione uma ROM para começar.</p>
-      </section>
+    recentGamesGrid.innerHTML = `
+      <article class="empty-state">
+        <h3>Nenhum jogo ainda</h3>
+        <p>Adicione uma ROM para ela aparecer aqui.</p>
+      </article>
     `;
     return;
   }
 
-  recentSavesGrid.innerHTML = "";
-  library.forEach((save) => recentSavesGrid.appendChild(createSaveCard(save, true)));
-  attachSaveButtons(recentSavesGrid);
+  recentGamesGrid.innerHTML = library.map((game) => createGameCardHtml(game)).join("");
+
+  recentGamesGrid.querySelectorAll("[data-action]").forEach((button) => {
+    button.addEventListener("click", () => handleGameAction(button.dataset.action, button.dataset.id));
+  });
+}
+
+function createGameCardHtml(rawGame) {
+  const game = normalizeGame(rawGame);
+  const cover = getGameCover(game);
+  const emulatorImg = getEmulatorImage(game.emulatorId);
+
+  return `
+    <article class="game-card" data-id="${escapeAttr(game.id)}">
+      <img class="card-bg-img" src="${escapeAttr(RATU_ASSETS.home.gameCard)}" alt="" />
+
+      <div class="game-cover-box">
+        <img class="cover-img" src="${escapeAttr(cover)}" alt="${escapeAttr(game.title)}" />
+        <span class="emulator-badge">
+          <img src="${escapeAttr(emulatorImg)}" alt="" />
+          ${escapeHtml(game.system)}
+        </span>
+      </div>
+
+      <h4>${escapeHtml(game.title)}</h4>
+      <small>${escapeHtml(game.system)}</small>
+
+      <button class="dots" data-action="details" data-id="${escapeAttr(game.id)}">⋮</button>
+    </article>
+  `;
 }
 
 function renderHomeEmulators() {
   const emulators = getEmulators().slice(0, 4);
 
   homeEmulatorsGrid.innerHTML = emulators.map((emulator) => {
-    const isReady = Boolean(emulator.exePath);
+    const isInstalled = Boolean(emulator.exePath);
+    const image = getEmulatorImage(emulator.id);
+
     return `
-      <article class="emulator-card">
-        <img class="emulator-art" src="${getEmulatorImage(emulator.id)}" alt="${escapeHtml(emulator.name)}" loading="lazy" />
+      <article class="home-emulator-card">
+        <img src="${escapeAttr(image)}" alt="${escapeAttr(emulator.name)}" />
         <div>
-          <h3>${escapeHtml(emulator.name)}</h3>
-          <p>${escapeHtml(emulator.systems.join(", "))}</p>
+          <h4>${escapeHtml(emulator.name)}</h4>
           <p>Versão ${escapeHtml(emulator.version || "?")}</p>
-        </div>
-        <div class="emulator-actions">
-          <span class="status-pill ${isReady ? "ready" : ""}">${isReady ? "Atualizado" : "Não instalado"}</span>
+          <span class="status ${isInstalled ? "" : "off"}">${isInstalled ? "Atualizado" : "Não instalado"}</span>
         </div>
       </article>
     `;
   }).join("");
 }
 
-function renderSaves() {
+function renderSavesPage() {
+  renderFolders();
+
   let library = getLibrary();
 
   if (currentSearch) {
-    library = library.filter((save) => {
-      const text = `${save.title} ${save.system} ${save.emulator}`.toLowerCase();
+    library = library.filter((game) => {
+      const text = `${game.title} ${game.system} ${game.emulator}`.toLowerCase();
       return text.includes(currentSearch);
     });
   }
 
-  if (currentSaveFilter === "recent") {
-    library = library.filter((save) => save.lastPlayed === "Agora" || save.lastPlayed === "Hoje");
+  if (onlyRecent) {
+    library = library.filter((game) => ["Agora", "Hoje", "Novo"].includes(game.lastPlayed));
   }
 
-  savesGrid.innerHTML = "";
+  if (sortSelect.value === "name") {
+    library.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  if (sortSelect.value === "system") {
+    library.sort((a, b) => a.system.localeCompare(b.system));
+  }
 
   if (library.length === 0) {
+    savesList.innerHTML = "";
     emptySaves.classList.remove("hidden");
+    renderDetailPanel(null);
     return;
   }
 
   emptySaves.classList.add("hidden");
-  library.forEach((save) => savesGrid.appendChild(createSaveCard(save, false)));
-  attachSaveButtons(savesGrid);
+
+  if (!selectedGameId || !library.some((game) => game.id === selectedGameId)) {
+    selectedGameId = library[0].id;
+  }
+
+  savesList.innerHTML = library.map((game) => createSaveRowHtml(game)).join("");
+
+  savesList.querySelectorAll("[data-action]").forEach((button) => {
+    button.addEventListener("click", () => handleGameAction(button.dataset.action, button.dataset.id));
+  });
+
+  renderDetailPanel(getLibrary().find((game) => game.id === selectedGameId));
 }
 
-function createSaveCard(save, compact) {
-  const normalized = normalizeGameSave(save);
-  const card = document.createElement("article");
-  card.className = "save-card";
+function renderFolders() {
+  const library = getLibrary();
 
-  const slotsHtml = normalized.saveSlots.map((slot) => `
-    <button class="slot-button ${normalized.activeSlot === slot.id ? "active" : ""}" data-action="slot" data-id="${escapeHtml(normalized.id)}" data-slot="${escapeHtml(slot.id)}" type="button">
-      ${escapeHtml(slot.label)}
-    </button>
+  const folders = [
+    { name: "Pokémon", count: countByText(library, "pokemon pokémon") },
+    { name: "Mario", count: countByText(library, "mario") },
+    { name: "Zelda", count: countByText(library, "zelda") },
+    { name: "Favoritos", count: library.filter((game) => game.favorite).length },
+  ];
+
+  foldersGrid.innerHTML = folders.map((folder) => `
+    <article class="folder-card">
+      <img class="card-bg-img" src="${escapeAttr(RATU_ASSETS.saves.folderCard)}" alt="" />
+      <h4>${escapeHtml(folder.name)}</h4>
+      <small>${folder.count} saves</small>
+    </article>
   `).join("");
+}
 
-  const activeSlot = normalized.saveSlots.find((slot) => slot.id === normalized.activeSlot) || normalized.saveSlots[0];
+function createSaveRowHtml(rawGame) {
+  const game = normalizeGame(rawGame);
+  const cover = getGameCover(game);
+  const selected = game.id === selectedGameId ? "selected" : "";
 
-  card.innerHTML = `
-    <div class="save-cover-wrap">
-      <img src="${toDisplaySrc(getGameCover(normalized))}" alt="${escapeHtml(normalized.title)}" loading="lazy" />
-      <span class="system-badge">${escapeHtml(normalized.system)}</span>
+  return `
+    <article class="save-row ${selected}" data-id="${escapeAttr(game.id)}">
+      <div class="save-row-cover">
+        <img src="${escapeAttr(cover)}" alt="${escapeAttr(game.title)}" />
+      </div>
+
+      <div class="save-row-info">
+        <span class="pill">${escapeHtml(game.system)}</span>
+        <h4>${escapeHtml(game.title)} ${game.favorite ? "♥" : ""}</h4>
+        <p>Última jogada: ${escapeHtml(game.lastPlayed)}<br />Tempo de jogo: ${escapeHtml(game.playTime)}</p>
+      </div>
+
+      <button class="play-button" data-action="play" data-id="${escapeAttr(game.id)}">▶ Jogar</button>
+      <button class="row-button" data-action="cover" data-id="${escapeAttr(game.id)}">✎ Capa</button>
+      <button class="row-button" data-action="details" data-id="${escapeAttr(game.id)}">⋮</button>
+    </article>
+  `;
+}
+
+function renderDetailPanel(rawGame) {
+  if (!rawGame) {
+    saveDetailPanel.innerHTML = `
+      <h3>Nenhum save</h3>
+      <p class="muted">Adicione uma ROM primeiro.</p>
+    `;
+    return;
+  }
+
+  const game = normalizeGame(rawGame);
+  const cover = getGameCover(game);
+
+  saveDetailPanel.innerHTML = `
+    <div class="detail-cover">
+      <img src="${escapeAttr(cover)}" alt="${escapeAttr(game.title)}" />
     </div>
 
-    <h3>${escapeHtml(normalized.title)}</h3>
-    <p>${escapeHtml(normalized.emulator)} · ${escapeHtml(activeSlot.label)} · ${escapeHtml(activeSlot.lastPlayed || normalized.lastPlayed)}</p>
+    <h3>${escapeHtml(game.title)} ${game.favorite ? "♥" : ""}</h3>
+    <span class="pill">${escapeHtml(game.system)}</span>
 
-    <div class="save-slots">
-      ${slotsHtml}
+    <div class="detail-meta">
+      <div>📅 Última jogada<br /><strong>${escapeHtml(game.lastPlayed)}</strong></div>
+      <div>⏱ Tempo de jogo<br /><strong>${escapeHtml(game.playTime)}</strong></div>
+      <div>📁 Local da ROM<br /><strong>${escapeHtml(game.romPath || "sem caminho real")}</strong></div>
+      <div>🔁 Sincronização<br /><strong>${game.synced ? "Sincronizado" : "Local"}</strong></div>
     </div>
 
-    <div class="save-actions">
-      <button class="primary-button wide" data-action="play" data-id="${escapeHtml(normalized.id)}" type="button">Jogar</button>
-      ${compact ? "" : `<button class="secondary-button" data-action="cover" data-id="${escapeHtml(normalized.id)}" type="button">Trocar capa</button>`}
-      ${compact ? "" : `<button class="secondary-button" data-action="details" data-id="${escapeHtml(normalized.id)}" type="button">Detalhes</button>`}
-      ${compact ? "" : `<button class="danger-button wide" data-action="delete" data-id="${escapeHtml(normalized.id)}" type="button">Apagar</button>`}
+    <h4>Slots de save</h4>
+
+    <div class="slot-list">
+      ${game.saveSlots.map((slot) => `
+        <button class="slot-button ${slot.id === game.activeSlot ? "active" : ""}" data-action="slot" data-id="${escapeAttr(game.id)}" data-slot="${escapeAttr(slot.id)}">
+          <strong>${escapeHtml(slot.label)} ${slot.id === game.activeSlot ? "ATIVO" : ""}</strong><br />
+          <span>${escapeHtml(slot.place)}</span><br />
+          <small>${escapeHtml(slot.time)} · Lv. ${escapeHtml(slot.level)}</small>
+        </button>
+      `).join("")}
+    </div>
+
+    <div class="detail-actions">
+      <button class="primary-button" data-action="play" data-id="${escapeAttr(game.id)}">Jogar</button>
+      <button class="outline-button" data-action="cover" data-id="${escapeAttr(game.id)}">Trocar capa personalizada</button>
+      <button class="danger-button" data-action="delete" data-id="${escapeAttr(game.id)}">Apagar da biblioteca</button>
     </div>
   `;
 
-  return card;
-}
+  saveDetailPanel.querySelectorAll("[data-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.action === "slot") {
+        changeSlot(button.dataset.id, button.dataset.slot);
+        return;
+      }
 
-function attachSaveButtons(container) {
-  container.querySelectorAll("button[data-action]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await handleSaveAction(button.dataset.action, button.dataset.id, button.dataset.slot);
+      handleGameAction(button.dataset.action, button.dataset.id);
     });
   });
 }
 
 function renderEmulators() {
   const emulators = getEmulators();
-  emulatorList.innerHTML = "";
 
-  emulators.forEach((emulator) => {
-    const isReady = Boolean(emulator.exePath);
-    const status = isReady ? "Pronto" : "Não instalado";
-    const installOrUninstallButton = isReady
-      ? `<button class="danger-button" data-action="uninstall-emulator" data-id="${escapeHtml(emulator.id)}" type="button">Desinstalar</button>`
-      : `<button class="primary-button" data-action="install-emulator" data-id="${escapeHtml(emulator.id)}" type="button">Instalar</button>`;
+  emulatorList.innerHTML = emulators.map((emulator) => {
+    const image = getEmulatorImage(emulator.id);
+    const installed = Boolean(emulator.exePath);
 
-    const card = document.createElement("article");
-    card.className = "emulator-card";
-    card.innerHTML = `
-      <img class="emulator-art" src="${getEmulatorImage(emulator.id)}" alt="${escapeHtml(emulator.name)}" loading="lazy" />
-      <div>
-        <h3>${escapeHtml(emulator.name)}</h3>
-        <p>${escapeHtml(emulator.systems.join(", "))}</p>
+    return `
+      <article class="emulator-card">
+        <img src="${escapeAttr(image)}" alt="${escapeAttr(emulator.name)}" />
+
+        <h4>${escapeHtml(emulator.name)}</h4>
         <p>Versão ${escapeHtml(emulator.version || "?")}</p>
-        <p class="emulator-path">EXE: ${escapeHtml(emulator.exePath || "Nenhum .exe selecionado")}</p>
-        <p class="emulator-path">Pasta: ${escapeHtml(emulator.folderPath || "Nenhuma pasta selecionada")}</p>
-      </div>
-      <div class="emulator-actions">
-        <span class="status-pill ${isReady ? "ready" : ""}">${escapeHtml(status)}</span>
-        ${installOrUninstallButton}
-        <button class="secondary-button" data-action="select-emulator-exe" data-id="${escapeHtml(emulator.id)}" type="button">Selecionar .exe</button>
-        <button class="secondary-button" data-action="select-emulator-folder" data-id="${escapeHtml(emulator.id)}" type="button">Selecionar pasta</button>
-      </div>
+        <span class="status ${installed ? "" : "off"}">${installed ? "Instalado" : "Não instalado"}</span>
+
+        <div class="emulator-card-actions">
+          <button class="${installed ? "danger-button" : "primary-button"}" data-action="${installed ? "uninstall" : "install"}" data-id="${escapeAttr(emulator.id)}">
+            ${installed ? "Desinstalar" : "Instalar"}
+          </button>
+
+          <button class="row-button" data-action="config" data-id="${escapeAttr(emulator.id)}">
+            Configurar
+          </button>
+        </div>
+      </article>
     `;
+  }).join("");
 
-    emulatorList.appendChild(card);
-  });
-
-  emulatorList.querySelectorAll("button[data-action]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      if (button.dataset.action === "install-emulator") await installEmulator(button.dataset.id);
-      if (button.dataset.action === "select-emulator-exe") await selectEmulatorExe(button.dataset.id);
-      if (button.dataset.action === "select-emulator-folder") await selectEmulatorFolder(button.dataset.id);
-      if (button.dataset.action === "uninstall-emulator") await uninstallEmulator(button.dataset.id);
-    });
+  emulatorList.querySelectorAll("[data-action]").forEach((button) => {
+    button.addEventListener("click", () => handleEmulatorAction(button.dataset.action, button.dataset.id));
   });
 }
 
-async function handleSaveAction(action, id, slotId) {
+async function handleGameAction(action, gameId) {
   const library = getLibrary();
-  const index = library.findIndex((item) => item.id === id);
-  if (index === -1) {
-    showToast("Save não encontrado.");
+  const game = library.find((item) => item.id === gameId);
+
+  if (!game) {
+    showToast("Jogo não encontrado.");
     return;
   }
 
-  const save = normalizeGameSave(library[index]);
-  library[index] = save;
+  selectedGameId = game.id;
 
-  if (action === "slot") {
-    save.activeSlot = slotId || "save-1";
-    saveLibrary(library);
-    await persistLibrary(library);
+  if (action === "details") {
+    setPage("saves");
     renderAll();
-    showToast(`${save.title}: ${getActiveSlot(save).label} selecionado.`);
     return;
   }
 
   if (action === "play") {
-    await playSave(save, library);
+    await playGame(game);
     return;
   }
 
   if (action === "cover") {
-    await changeGameCover(save.id);
-    return;
-  }
-
-  if (action === "details") {
-    const slot = getActiveSlot(save);
-    alert(
-      `Detalhes do jogo\n\n` +
-      `Nome: ${save.title}\n` +
-      `Arquivo: ${save.fileName}\n` +
-      `Sistema: ${save.system}\n` +
-      `Emulador: ${save.emulator}\n` +
-      `Slot ativo: ${slot.label}\n` +
-      `ROM: ${save.romPath || "sem caminho real"}\n` +
-      `Pasta do jogo: ${save.gameFolderPath || "ainda não criada"}`
-    );
+    await chooseCover(game.id);
     return;
   }
 
   if (action === "delete") {
-    const confirmDelete = confirm(`Apagar ${save.title} da biblioteca?`);
-    if (!confirmDelete) return;
-
-    const updated = library.filter((item) => item.id !== id);
-    saveLibrary(updated);
-    await persistLibrary(updated);
-    renderAll();
-    showToast(`Removido: ${save.title}`);
+    deleteGame(game.id);
   }
 }
 
-async function playSave(save, library) {
-  if (!isTauriReady()) {
-    alert("Para abrir o emulador real, rode pelo app Tauri: npm run tauri dev");
-    return;
-  }
+async function playGame(game) {
+  const library = getLibrary();
+  const index = library.findIndex((item) => item.id === game.id);
 
-  if (!save.romPath) {
-    alert("Esse jogo não tem caminho real da ROM. Adicione a ROM de novo pelo app Ratu Launcher.");
-    return;
-  }
+  if (index < 0) return;
 
   const emulators = getEmulators();
-  const emulator = emulators.find((item) => item.id === save.emulatorId);
+  const emulator = emulators.find((item) => item.id === game.emulatorId);
 
-  if (!emulator || !emulator.exePath) {
-    const installNow = confirm(
-      `O emulador para ${save.system} ainda não está pronto.\n\n` +
-      `Emulador necessário: ${save.emulator}\n\n` +
-      "Quer instalar/configurar agora?"
-    );
-
-    if (installNow && emulator) {
-      await installEmulator(emulator.id);
-    } else {
-      setPage("emulators");
-    }
+  if (!isTauriReady()) {
+    showToast("Para abrir jogo real, rode pelo app Tauri.");
     return;
   }
 
-  const activeSlot = getActiveSlot(save);
-  activeSlot.lastPlayed = "Agora";
-  save.lastPlayed = "Agora";
-  save.updatedAt = new Date().toISOString();
+  if (!game.romPath) {
+    showToast("Esse jogo foi adicionado pelo navegador. Adicione pelo app Tauri para abrir.");
+    return;
+  }
+
+  if (!emulator || !emulator.exePath) {
+    showToast(`Configure o emulador ${game.emulator} primeiro.`);
+    setPage("emulators");
+    return;
+  }
+
+  library[index].lastPlayed = "Agora";
+  library[index].updatedAt = new Date().toISOString();
 
   saveLibrary(library);
   await persistLibrary(library);
-  renderAll();
 
-  showToast(`Abrindo ${save.title} · ${activeSlot.label}...`);
+  renderAll();
 
   try {
     const result = await invokeRust("launch_game", {
       emulatorPath: emulator.exePath,
-      romPath: save.romPath
+      romPath: game.romPath,
     });
+
     showToast(result);
   } catch (error) {
-    console.error(error);
     alert("Erro ao abrir jogo.\n\n" + String(error));
   }
 }
 
-async function selectRomWithDialog() {
+async function chooseCover(gameId) {
+  pendingCoverGameId = gameId;
+
+  if (!isTauriReady()) {
+    coverInput.click();
+    return;
+  }
+
+  try {
+    const { open } = await import("@tauri-apps/plugin-dialog");
+
+    const selected = await open({
+      multiple: false,
+      directory: false,
+      title: "Escolha a capa do jogo",
+      filters: [
+        {
+          name: "Imagens",
+          extensions: ["png", "jpg", "jpeg", "webp"],
+        },
+      ],
+    });
+
+    if (!selected || Array.isArray(selected)) return;
+
+    setGameCover(gameId, selected);
+  } catch (error) {
+    console.error(error);
+    coverInput.click();
+  }
+}
+
+function setGameCover(gameId, coverPath) {
+  const library = getLibrary();
+  const game = library.find((item) => item.id === gameId);
+
+  if (!game) return;
+
+  game.coverPath = coverPath;
+  game.updatedAt = new Date().toISOString();
+
+  saveLibrary(library);
+  persistLibrary(library);
+
+  renderAll();
+  showToast("Capa personalizada aplicada.");
+}
+
+function changeSlot(gameId, slotId) {
+  const library = getLibrary();
+  const game = library.find((item) => item.id === gameId);
+
+  if (!game) return;
+
+  game.activeSlot = slotId;
+  game.updatedAt = new Date().toISOString();
+
+  saveLibrary(library);
+  persistLibrary(library);
+
+  renderAll();
+}
+
+function deleteGame(gameId) {
+  const library = getLibrary();
+  const game = library.find((item) => item.id === gameId);
+
+  if (!game) return;
+
+  const confirmDelete = confirm(`Apagar ${game.title} da biblioteca?`);
+
+  if (!confirmDelete) return;
+
+  const updated = library.filter((item) => item.id !== gameId);
+
+  selectedGameId = updated[0]?.id || "";
+
+  saveLibrary(updated);
+  persistLibrary(updated);
+
+  renderAll();
+  showToast("Jogo removido.");
+}
+
+async function selectRom() {
   if (!isTauriReady()) {
     romInput.click();
     return;
@@ -644,6 +767,7 @@ async function selectRomWithDialog() {
 
   try {
     const { open } = await import("@tauri-apps/plugin-dialog");
+
     const selected = await open({
       multiple: false,
       directory: false,
@@ -651,35 +775,58 @@ async function selectRomWithDialog() {
       filters: [
         {
           name: "ROMs",
-          extensions: ["nes", "smc", "sfc", "gb", "gbc", "gba", "nds", "dsi", "n64", "z64", "v64", "cue", "bin", "iso", "3ds", "cci", "cxi", "cia", "psp", "cso", "gcm", "wbfs"]
+          extensions: [
+            "nes",
+            "smc",
+            "sfc",
+            "gb",
+            "gbc",
+            "gba",
+            "nds",
+            "dsi",
+            "n64",
+            "z64",
+            "v64",
+            "3ds",
+            "cci",
+            "cxi",
+            "cia",
+            "cue",
+            "bin",
+            "iso",
+            "cso",
+            "gcm",
+            "wbfs",
+          ],
         },
         {
-          name: "Todos os arquivos",
-          extensions: ["*"]
-        }
-      ]
+          name: "Todos",
+          extensions: ["*"],
+        },
+      ],
     });
 
     if (!selected || Array.isArray(selected)) return;
-    await addRomFromRealPath(selected);
+
+    await addRomFromPath(selected);
   } catch (error) {
     console.error(error);
-    showToast("Erro ao escolher ROM. Usando modo navegador.");
     romInput.click();
   }
 }
 
-async function addRomFromRealPath(romPath) {
-  const fileName = getFileNameFromPath(romPath);
+async function addRomFromPath(romPath) {
+  const fileName = getFileName(romPath);
   const extension = getExtension(fileName);
   const detected = systemByExtension[extension] || {
-    system: "Desconhecido",
+    system: "ROM",
     emulatorId: "manual",
-    emulator: "Manual"
+    emulator: "Manual",
   };
 
-  const title = cleanGameTitle(fileName);
-  const id = createIdFromTitle(title);
+  const title = cleanTitle(fileName);
+  const id = createId(title);
+
   let gameFolderPath = "";
 
   if (isTauriReady()) {
@@ -690,144 +837,116 @@ async function addRomFromRealPath(romPath) {
     }
   }
 
-  const save = normalizeGameSave({
+  const newGame = normalizeGame({
     id,
     title,
     fileName,
     romPath,
     extension,
-    size: 0,
     system: detected.system,
     emulatorId: detected.emulatorId,
     emulator: detected.emulator,
     coverPath: "",
     gameFolderPath,
-    folders: [],
+    favorite: false,
+    synced: true,
     lastPlayed: "Novo",
+    playTime: "0h 0m",
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   });
 
   const library = getLibrary();
-  library.unshift(save);
+
+  library.unshift(newGame);
+  selectedGameId = newGame.id;
+
   saveLibrary(library);
   await persistLibrary(library);
-  showToast(`Adicionado na biblioteca: ${title}`);
+
   setPage("saves");
+  showToast(`Adicionado: ${title}`);
 }
 
 function addRomFromBrowserFile(file) {
   const extension = getExtension(file.name);
   const detected = systemByExtension[extension] || {
-    system: "Desconhecido",
+    system: "ROM",
     emulatorId: "manual",
-    emulator: "Manual"
+    emulator: "Manual",
   };
 
-  const title = cleanGameTitle(file.name);
-  const save = normalizeGameSave({
-    id: createIdFromTitle(title),
+  const title = cleanTitle(file.name);
+
+  const newGame = normalizeGame({
+    id: createId(title),
     title,
     fileName: file.name,
     romPath: "",
     extension,
-    size: file.size,
     system: detected.system,
     emulatorId: detected.emulatorId,
     emulator: detected.emulator,
     coverPath: "",
-    gameFolderPath: "",
-    folders: [],
+    favorite: false,
+    synced: false,
     lastPlayed: "Novo",
+    playTime: "0h 0m",
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   });
 
   const library = getLibrary();
-  library.unshift(save);
+
+  library.unshift(newGame);
+  selectedGameId = newGame.id;
+
   saveLibrary(library);
   persistLibrary(library);
-  showToast(`Adicionado na biblioteca: ${title}`);
+
   setPage("saves");
+  showToast(`Adicionado: ${title}`);
 }
 
-async function changeGameCover(gameId) {
-  const library = getLibrary();
-  const save = library.find((item) => item.id === gameId);
-  if (!save) return;
-
-  if (!isTauriReady()) {
-    const url = prompt("Cole uma URL de imagem para usar como capa:");
-    if (!url) return;
-    save.coverPath = url;
-    saveLibrary(library);
-    await persistLibrary(library);
-    renderAll();
+async function handleEmulatorAction(action, emulatorId) {
+  if (action === "install") {
+    await installEmulator(emulatorId);
     return;
   }
 
-  try {
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    const selected = await open({
-      multiple: false,
-      directory: false,
-      title: "Escolha uma capa personalizada",
-      filters: [
-        {
-          name: "Imagens",
-          extensions: ["png", "jpg", "jpeg", "webp"]
-        }
-      ]
-    });
-
-    if (!selected || Array.isArray(selected)) return;
-    save.coverPath = selected;
-    save.updatedAt = new Date().toISOString();
-    saveLibrary(library);
-    await persistLibrary(library);
-    renderAll();
-    showToast("Capa personalizada aplicada.");
-  } catch (error) {
-    console.error(error);
-    alert("Erro ao trocar capa.\n\n" + String(error));
-  }
-}
-
-function continueLastSave() {
-  const library = getLibrary();
-  if (library.length === 0) {
-    showToast("Nenhum jogo ainda. Adicione uma ROM primeiro.");
-    setPage("new-rom");
+  if (action === "config") {
+    await configureEmulator(emulatorId);
     return;
   }
-  playSave(library[0], library);
+
+  if (action === "uninstall") {
+    await uninstallEmulator(emulatorId);
+  }
 }
 
 async function installEmulator(emulatorId) {
   const emulators = getEmulators();
   const emulator = emulators.find((item) => item.id === emulatorId);
-  if (!emulator) {
-    showToast("Emulador não encontrado.");
+
+  if (!emulator) return;
+
+  if (!isTauriReady()) {
+    showToast("Instalação automática só funciona no app Tauri.");
     return;
   }
 
-  const confirmInstall = confirm(
-    `Instalar ${emulator.name}?\n\n` +
-    "O Ratu vai tentar instalar sozinho pelo Windows usando winget.\n\n" +
-    "Pode demorar um pouco e talvez o Windows peça confirmação."
-  );
+  const confirmInstall = confirm(`Instalar ${emulator.name} pelo winget?`);
 
   if (!confirmInstall) return;
 
   try {
-    if (!isTauriReady()) throw new Error("Tauri não está disponível.");
-    if (!emulator.wingetId) throw new Error("Esse emulador ainda não tem wingetId configurado.");
+    await invokeRust("install_emulator_winget", {
+      wingetId: emulator.wingetId,
+    });
 
-    showToast(`Instalando ${emulator.name}...`);
-    await invokeRust("install_emulator_winget", { wingetId: emulator.wingetId });
-
-    showToast(`Procurando ${emulator.name} no PC...`);
-    const exePath = await invokeRust("detect_emulator_exe", { emulatorId: emulator.id });
+    const exePath = await invokeRust("detect_emulator_exe", {
+      emulatorId: emulator.id,
+    });
 
     emulator.exePath = exePath;
     emulator.folderPath = getFolderFromPath(exePath);
@@ -835,44 +954,45 @@ async function installEmulator(emulatorId) {
 
     saveEmulators(emulators);
     await persistEmulators(emulators);
+
     renderAll();
-    showToast(`${emulator.name} instalado e configurado.`);
+    showToast(`${emulator.name} instalado.`);
   } catch (error) {
     console.error(error);
-    const openSite = confirm("Não consegui instalar automático. Quer abrir a página oficial?");
+    const openSite = confirm("Não consegui instalar automático. Abrir site oficial?");
 
     if (openSite && emulator.installUrl) {
-      if (isTauriReady()) {
-        await invokeRust("open_url", { url: emulator.installUrl });
-      } else {
-        window.open(emulator.installUrl, "_blank");
-      }
+      await invokeRust("open_url", { url: emulator.installUrl });
     }
   }
 }
 
-async function selectEmulatorExe(emulatorId) {
+async function configureEmulator(emulatorId) {
   if (!isTauriReady()) {
-    alert("Seleção de .exe só funciona dentro do app Tauri.");
+    showToast("Configuração de .exe só funciona no app Tauri.");
     return;
   }
 
   try {
     const { open } = await import("@tauri-apps/plugin-dialog");
+
     const selected = await open({
       multiple: false,
       directory: false,
-      title: "Escolha o executável do emulador",
+      title: "Escolha o .exe do emulador",
       filters: [
-        { name: "Executável", extensions: ["exe"] },
-        { name: "Todos os arquivos", extensions: ["*"] }
-      ]
+        {
+          name: "Executável",
+          extensions: ["exe"],
+        },
+      ],
     });
 
     if (!selected || Array.isArray(selected)) return;
 
     const emulators = getEmulators();
     const emulator = emulators.find((item) => item.id === emulatorId);
+
     if (!emulator) return;
 
     emulator.exePath = selected;
@@ -881,174 +1001,99 @@ async function selectEmulatorExe(emulatorId) {
 
     saveEmulators(emulators);
     await persistEmulators(emulators);
+
     renderAll();
     showToast(`${emulator.name} configurado.`);
   } catch (error) {
-    console.error(error);
-    alert("Erro ao escolher emulador.\n\n" + String(error));
-  }
-}
-
-async function selectEmulatorFolder(emulatorId) {
-  if (!isTauriReady()) {
-    alert("Seleção de pasta só funciona dentro do app Tauri.");
-    return;
-  }
-
-  try {
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    const selected = await open({
-      multiple: false,
-      directory: true,
-      title: "Escolha a pasta do emulador"
-    });
-
-    if (!selected || Array.isArray(selected)) return;
-
-    const emulators = getEmulators();
-    const emulator = emulators.find((item) => item.id === emulatorId);
-    if (!emulator) return;
-
-    showToast(`Procurando .exe do ${emulator.name}...`);
-    const exePath = await invokeRust("find_emulator_exe", { emulatorId, folderPath: selected });
-
-    emulator.exePath = exePath;
-    emulator.folderPath = selected;
-    emulator.status = "Pronto";
-
-    saveEmulators(emulators);
-    await persistEmulators(emulators);
-    renderAll();
-    showToast(`${emulator.name} detectado sozinho.`);
-  } catch (error) {
-    console.error(error);
-    alert("Não consegui detectar o .exe nessa pasta.\n\n" + String(error));
+    alert("Erro ao configurar emulador.\n\n" + String(error));
   }
 }
 
 async function uninstallEmulator(emulatorId) {
   const emulators = getEmulators();
   const emulator = emulators.find((item) => item.id === emulatorId);
+
   if (!emulator) return;
 
-  const confirmUninstall = confirm(
-    `Desinstalar ${emulator.name}?\n\n` +
-    "Se foi instalado pelo winget, o Ratu vai tentar desinstalar pelo winget.\n" +
-    "ROMs e saves não serão apagados."
-  );
+  const confirmUninstall = confirm(`Desvincular ${emulator.name}?`);
 
   if (!confirmUninstall) return;
 
-  try {
-    let message = "Emulador desvinculado.";
+  emulator.exePath = "";
+  emulator.folderPath = "";
+  emulator.status = "Pendente";
 
-    if (isTauriReady() && emulator.wingetId) {
-      try {
-        message = await invokeRust("uninstall_emulator_winget", { wingetId: emulator.wingetId });
-      } catch (error) {
-        message = await invokeRust("uninstall_emulator", {
-          emulatorId: emulator.id,
-          folderPath: emulator.folderPath || "",
-          exePath: emulator.exePath || ""
-        });
-      }
-    } else if (isTauriReady()) {
-      message = await invokeRust("uninstall_emulator", {
-        emulatorId: emulator.id,
-        folderPath: emulator.folderPath || "",
-        exePath: emulator.exePath || ""
-      });
-    }
+  saveEmulators(emulators);
+  await persistEmulators(emulators);
 
-    emulator.exePath = "";
-    emulator.folderPath = "";
-    emulator.status = "Pendente";
-
-    saveEmulators(emulators);
-    await persistEmulators(emulators);
-    renderAll();
-    showToast(message);
-  } catch (error) {
-    console.error(error);
-    alert("Erro ao desinstalar emulador.\n\n" + String(error));
-  }
-}
-
-async function resetAndRepairDefaultEmulators() {
-  const confirmReset = confirm(
-    "Reparar emuladores padrões?\n\n" +
-    "Isso volta a lista padrão e procura os .exe automaticamente.\n" +
-    "Não apaga ROMs nem saves."
-  );
-
-  if (!confirmReset) return;
-
-  const repaired = cloneDefaultEmulators();
-  let foundCount = 0;
-
-  if (isTauriReady()) {
-    showToast("Procurando emuladores instalados...");
-
-    for (const emulator of repaired) {
-      try {
-        const defaultFolder = await invokeRust("get_emulator_default_folder", { emulatorId: emulator.id });
-        emulator.folderPath = defaultFolder;
-
-        let exePath = "";
-        try {
-          exePath = await invokeRust("find_emulator_exe", { emulatorId: emulator.id, folderPath: defaultFolder });
-        } catch (error) {
-          exePath = await invokeRust("detect_emulator_exe", { emulatorId: emulator.id });
-        }
-
-        emulator.exePath = exePath;
-        emulator.folderPath = getFolderFromPath(exePath);
-        emulator.status = "Pronto";
-        foundCount += 1;
-      } catch (error) {
-        emulator.exePath = "";
-        emulator.status = "Pendente";
-      }
-    }
-  }
-
-  saveEmulators(repaired);
-  await persistEmulators(repaired);
   renderAll();
-
-  if (foundCount > 0) {
-    showToast(`Padrões reparados. ${foundCount} emulador(es) detectado(s).`);
-  } else {
-    showToast("Padrões redefinidos. Nenhum .exe foi achado.");
-  }
+  showToast(`${emulator.name} desvinculado.`);
 }
 
 function addCustomEmulator() {
   const name = prompt("Nome do emulador:");
   if (!name) return;
 
-  const systemsText = prompt("Quais sistemas ele roda? Exemplo: PSP, PS2, GameCube");
+  const systemsText = prompt("Sistemas separados por vírgula. Exemplo: PS2, PSP, Wii");
   if (!systemsText) return;
 
-  const systems = systemsText.split(",").map((item) => item.trim()).filter(Boolean);
   const emulators = getEmulators();
 
   emulators.push({
-    id: createIdFromTitle(name),
+    id: createId(name),
     name,
-    systems,
     version: "Manual",
-    status: "Manual",
+    systems: systemsText.split(",").map((item) => item.trim()).filter(Boolean),
+    status: "Pendente",
     exePath: "",
     folderPath: "",
     installUrl: "",
-    wingetId: ""
+    wingetId: "",
   });
 
   saveEmulators(emulators);
   persistEmulators(emulators);
+
   renderAll();
-  showToast(`Emulador adicionado: ${name}`);
+}
+
+function resetEmulators() {
+  const confirmReset = confirm("Redefinir emuladores padrões?");
+
+  if (!confirmReset) return;
+
+  saveEmulators(clone(defaultEmulators));
+  persistEmulators(getEmulators());
+
+  renderAll();
+  showToast("Emuladores padrões redefinidos.");
+}
+
+async function loadTauriData() {
+  if (!isTauriReady()) return;
+
+  try {
+    await invokeRust("ensure_ratu_data_folder");
+
+    const libraryJson = await invokeRust("load_library_file");
+    const emulatorsJson = await invokeRust("load_emulators_file");
+
+    saveLibrary(normalizeLibrary(safeJson(libraryJson, getLibrary())));
+    saveEmulators(mergeEmulators(safeJson(emulatorsJson, getEmulators())));
+  } catch (error) {
+    console.error(error);
+    showToast("Abri em modo local.");
+  }
+}
+
+function seedStorage() {
+  if (!localStorage.getItem(STORAGE_LIBRARY)) {
+    saveLibrary([]);
+  }
+
+  if (!localStorage.getItem(STORAGE_EMULATORS)) {
+    saveEmulators(clone(defaultEmulators));
+  }
 }
 
 function getLibrary() {
@@ -1059,125 +1104,131 @@ function saveLibrary(library) {
   localStorage.setItem(STORAGE_LIBRARY, JSON.stringify(normalizeLibrary(library), null, 2));
 }
 
-function getEmulators() {
-  const saved = readJson(STORAGE_EMULATORS, []);
-  return mergeDefaultEmulators(Array.isArray(saved) ? saved : []);
-}
-
-function saveEmulators(emulators) {
-  localStorage.setItem(STORAGE_EMULATORS, JSON.stringify(emulators, null, 2));
-}
-
-function mergeDefaultEmulators(saved) {
-  const merged = saved.map((item) => ({
-    ...item,
-    version: item.version || "Atual",
-    exePath: item.exePath || "",
-    folderPath: item.folderPath || "",
-    installUrl: item.installUrl || "",
-    wingetId: item.wingetId || ""
-  }));
-
-  defaultEmulators.forEach((defaultEmulator) => {
-    const existing = merged.find((item) => item.id === defaultEmulator.id);
-
-    if (!existing) {
-      merged.push({ ...defaultEmulator });
-      return;
-    }
-
-    existing.name = defaultEmulator.name;
-    existing.systems = defaultEmulator.systems;
-    existing.installUrl = defaultEmulator.installUrl;
-    existing.wingetId = defaultEmulator.wingetId;
-    existing.version = existing.version || defaultEmulator.version;
-  });
-
-  return merged;
-}
-
-function cloneDefaultEmulators() {
-  return JSON.parse(JSON.stringify(defaultEmulators));
-}
-
-function normalizeLibrary(library) {
-  if (!Array.isArray(library)) return [];
-  return library.map((item) => normalizeGameSave(item));
-}
-
-function normalizeGameSave(save) {
-  const id = save.id || createIdFromTitle(save.title || save.fileName || "game");
-
-  const saveSlots = Array.isArray(save.saveSlots) && save.saveSlots.length === 3
-    ? save.saveSlots
-    : [
-        { id: "save-1", label: "Save 1", lastPlayed: save.lastPlayed || "Novo" },
-        { id: "save-2", label: "Save 2", lastPlayed: "Vazio" },
-        { id: "save-3", label: "Save 3", lastPlayed: "Vazio" }
-      ];
-
-  return {
-    ...save,
-    id,
-    title: save.title || cleanGameTitle(save.fileName || "Jogo sem nome"),
-    fileName: save.fileName || "",
-    romPath: save.romPath || "",
-    extension: save.extension || getExtension(save.fileName || ""),
-    size: save.size || 0,
-    system: save.system || "Desconhecido",
-    emulatorId: save.emulatorId || "manual",
-    emulator: save.emulator || "Manual",
-    coverPath: save.coverPath || "",
-    gameFolderPath: save.gameFolderPath || "",
-    folders: Array.isArray(save.folders) ? save.folders : [],
-    activeSlot: save.activeSlot || "save-1",
-    saveSlots,
-    lastPlayed: save.lastPlayed || "Novo",
-    createdAt: save.createdAt || new Date().toISOString(),
-    updatedAt: save.updatedAt || new Date().toISOString()
-  };
-}
-
-function getActiveSlot(save) {
-  return save.saveSlots.find((slot) => slot.id === save.activeSlot) || save.saveSlots[0];
-}
-
 async function persistLibrary(library) {
   if (!isTauriReady()) return;
+
   try {
-    await invokeRust("save_library_file", { json: JSON.stringify(normalizeLibrary(library), null, 2) });
+    await invokeRust("save_library_file", {
+      json: JSON.stringify(normalizeLibrary(library), null, 2),
+    });
   } catch (error) {
     console.error(error);
   }
+}
+
+function getEmulators() {
+  return mergeEmulators(readJson(STORAGE_EMULATORS, []));
+}
+
+function saveEmulators(emulators) {
+  localStorage.setItem(STORAGE_EMULATORS, JSON.stringify(mergeEmulators(emulators), null, 2));
 }
 
 async function persistEmulators(emulators) {
   if (!isTauriReady()) return;
+
   try {
-    await invokeRust("save_emulators_file", { json: JSON.stringify(emulators, null, 2) });
+    await invokeRust("save_emulators_file", {
+      json: JSON.stringify(mergeEmulators(emulators), null, 2),
+    });
   } catch (error) {
     console.error(error);
   }
 }
 
-function readJson(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw);
-  } catch (error) {
-    console.error(error);
-    return fallback;
-  }
+function normalizeLibrary(library) {
+  if (!Array.isArray(library)) return [];
+
+  return library.map(normalizeGame);
 }
 
-function safeParseJson(raw, fallback) {
-  try {
-    return JSON.parse(raw);
-  } catch (error) {
-    console.error(error);
-    return fallback;
+function normalizeGame(game) {
+  const saveSlots = Array.isArray(game.saveSlots) && game.saveSlots.length
+    ? game.saveSlots
+    : createSlots();
+
+  return {
+    id: game.id || createId(game.title || "game"),
+    title: game.title || "Jogo sem nome",
+    fileName: game.fileName || "",
+    romPath: game.romPath || "",
+    extension: game.extension || getExtension(game.fileName || ""),
+    system: game.system || "ROM",
+    emulatorId: game.emulatorId || "manual",
+    emulator: game.emulator || "Manual",
+    coverPath: game.coverPath || "",
+    gameFolderPath: game.gameFolderPath || "",
+    favorite: Boolean(game.favorite),
+    synced: game.synced !== false,
+    lastPlayed: game.lastPlayed || "Novo",
+    playTime: game.playTime || "0h 0m",
+    activeSlot: game.activeSlot || "slot-1",
+    saveSlots: saveSlots.map((slot, index) => ({
+      id: slot.id || `slot-${index + 1}`,
+      label: slot.label || `Slot ${index + 1}`,
+      place: slot.place || (index === 0 ? "Sem dados" : "Vazio"),
+      time: slot.time || "--:--",
+      level: slot.level || "-",
+    })),
+    createdAt: game.createdAt || new Date().toISOString(),
+    updatedAt: game.updatedAt || new Date().toISOString(),
+  };
+}
+
+function createSlots() {
+  return [
+    {
+      id: "slot-1",
+      label: "Slot 1",
+      place: "Save principal",
+      time: "00:00",
+      level: "1",
+    },
+    {
+      id: "slot-2",
+      label: "Slot 2",
+      place: "Sem dados",
+      time: "--:--",
+      level: "-",
+    },
+    {
+      id: "slot-3",
+      label: "Slot 3",
+      place: "Sem dados",
+      time: "--:--",
+      level: "-",
+    },
+  ];
+}
+
+function mergeEmulators(saved) {
+  const list = Array.isArray(saved) ? saved : [];
+  const merged = clone(defaultEmulators);
+
+  for (const savedEmulator of list) {
+    const index = merged.findIndex((item) => item.id === savedEmulator.id);
+
+    if (index >= 0) {
+      merged[index] = {
+        ...merged[index],
+        ...savedEmulator,
+        systems: savedEmulator.systems?.length ? savedEmulator.systems : merged[index].systems,
+      };
+    } else {
+      merged.push(savedEmulator);
+    }
   }
+
+  return merged;
+}
+
+function countByText(library, words) {
+  const terms = words.toLowerCase().split(" ");
+
+  return library.filter((game) => {
+    const title = game.title.toLowerCase();
+    return terms.some((term) => title.includes(term));
+  }).length;
 }
 
 function isTauriReady() {
@@ -1186,41 +1237,57 @@ function isTauriReady() {
 
 async function invokeRust(command, args = {}) {
   const invoke = window.__TAURI__?.core?.invoke;
-  if (!invoke) throw new Error("Tauri não está disponível.");
+
+  if (!invoke) {
+    throw new Error("Tauri não disponível.");
+  }
+
   return await invoke(command, args);
 }
 
-function toDisplaySrc(src) {
-  if (!src) return getEmulatorImage("manual");
-
-  const isLocalPath = /^[a-zA-Z]:\\/.test(src) || src.startsWith("/");
-  const convertFileSrc = window.__TAURI__?.core?.convertFileSrc;
-
-  if (isLocalPath && typeof convertFileSrc === "function") {
-    return convertFileSrc(src);
+function readJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
   }
+}
 
-  return src;
+function safeJson(raw, fallback) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function setImage(id, src) {
+  const img = $(id);
+  if (!img) return;
+
+  img.src = getDisplayImage(src);
 }
 
 function getExtension(fileName) {
   const parts = String(fileName).split(".");
-  if (parts.length <= 1) return "";
-  return parts.pop().toLowerCase().trim();
+  return parts.length > 1 ? parts.pop().toLowerCase().trim() : "";
 }
 
-function getFileNameFromPath(path) {
+function getFileName(path) {
   return String(path).replaceAll("\\", "/").split("/").pop();
 }
 
 function getFolderFromPath(path) {
   const normalized = String(path).replaceAll("\\", "/");
   const parts = normalized.split("/");
+
   parts.pop();
+
   return parts.join("/");
 }
 
-function cleanGameTitle(fileName) {
+function cleanTitle(fileName) {
   return String(fileName)
     .replace(/\.[^/.]+$/, "")
     .replaceAll("_", " ")
@@ -1229,23 +1296,31 @@ function cleanGameTitle(fileName) {
     .trim();
 }
 
-function createIdFromTitle(title) {
-  const clean = String(title)
+function createId(text) {
+  const slug = String(text)
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
+    .slice(0, 44);
 
-  return `${clean || "game"}-${Date.now()}`;
+  return `${slug || "item"}-${Date.now()}`;
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
 }
 
 function showToast(message) {
   toast.textContent = message;
   toast.classList.remove("hidden");
-  clearTimeout(showToast.timeout);
-  showToast.timeout = setTimeout(() => toast.classList.add("hidden"), 2600);
+
+  clearTimeout(showToast.timer);
+
+  showToast.timer = setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2600);
 }
 
 function escapeHtml(value) {
@@ -1255,4 +1330,8 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
 }
