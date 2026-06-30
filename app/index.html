@@ -1,221 +1,215 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Ratu Launcher</title>
-
-  <link rel="stylesheet" href="styles/style.css" />
-</head>
-
-<body>
-  <div class="splash" id="splash">
-    <div class="splash-track">
-      <div class="rat-runner">🐀</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ratu Launcher</title>
+    <link rel="stylesheet" href="./styles/style.css" />
+  </head>
+  <body>
+    <div class="splash" id="splash">
+      <div class="splash-card">
+        <div class="splash-rat">🐀</div>
+        <h1>Ratu Launcher</h1>
+        <p>preparando sua toca de jogos...</p>
+      </div>
     </div>
 
-    <h1>Ratu Launcher</h1>
-    <p>preparando sua toca de jogos...</p>
-  </div>
-
-  <main class="app hidden" id="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-icon">🐀</div>
-
-        <div>
-          <strong>Ratu</strong>
-          <span>Launcher</span>
-        </div>
-      </div>
-
-      <nav class="menu">
-        <button class="menu-button active" data-page="home">
-          <span>🏠</span>
-          Home
-        </button>
-
-        <button class="menu-button" data-page="saves">
-          <span>💾</span>
-          Saves
-        </button>
-
-        <button class="menu-button" data-page="new-rom">
-          <span>➕</span>
-          Nova ROM
-        </button>
-
-        <button class="menu-button" data-page="emulators">
-          <span>🎮</span>
-          Emuladores
-        </button>
-
-        <button class="menu-button" data-page="faq">
-          <span>❔</span>
-          FAQ
-        </button>
-      </nav>
-
-      <div class="launcher-status">
-        <span class="status-dot"></span>
-        <div>
-          <strong>Modo local</strong>
-          <small>sem conta Google ainda</small>
-        </div>
-      </div>
-    </aside>
-
-    <section class="content">
-      <header class="topbar">
-        <div>
-          <h1 id="pageTitle">Home</h1>
-          <p id="pageSubtitle">Seu painel rápido do Ratu Launcher.</p>
-        </div>
-
-        <button class="primary-button" id="quickAddButton">
-          + Nova ROM
-        </button>
-      </header>
-
-      <section class="page active" id="page-home">
-        <div class="home-hero">
+    <div class="app hidden" id="app">
+      <aside class="sidebar">
+        <div class="brand-area">
+          <div class="brand-mark">🐀</div>
           <div>
-            <span class="eyebrow">Ratu Launcher</span>
-            <h2>Continue seu jogo sem caçar pasta.</h2>
-            <p>
-              Seus saves, ROMs e emuladores organizados em um lugar só.
-            </p>
-
-            <div class="home-actions">
-              <button class="primary-button" id="homeContinueButton">
-                Continuar último save
-              </button>
-
-              <button class="secondary-button" id="homeAddRomButton">
-                Adicionar ROM
-              </button>
-            </div>
-          </div>
-
-          <div class="home-rat-box">
-            <div class="home-rat">🐀</div>
-            <small>modo rápido ativado</small>
+            <h1>Ratu</h1>
+            <span>Launcher</span>
           </div>
         </div>
 
-        <div class="home-grid">
-          <article class="stat-card">
-            <span>💾</span>
-            <div>
-              <strong id="homeSaveCount">0</strong>
-              <small>Saves</small>
-            </div>
-          </article>
-
-          <article class="stat-card">
-            <span>🎮</span>
-            <div>
-              <strong id="homeEmulatorCount">0</strong>
-              <small>Emuladores</small>
-            </div>
-          </article>
-
-          <article class="stat-card">
-            <span>🌐</span>
-            <div>
-              <strong>Web</strong>
-              <small>Conexão futura</small>
-            </div>
-          </article>
-        </div>
-
-        <div class="section-head">
-          <div>
-            <h2>Saves recentes</h2>
-            <p>Os últimos jogos adicionados aparecem aqui.</p>
-          </div>
-
-          <button class="secondary-button" id="viewAllSavesButton">
-            Ver todos
+        <nav class="side-nav" aria-label="Menu principal">
+          <button class="menu-button active" data-page="home" type="button">
+            <span>⌂</span>
+            Home
           </button>
-        </div>
-
-        <div class="cards-grid compact" id="recentSavesGrid"></div>
-      </section>
-
-      <section class="page" id="page-saves">
-        <div class="cards-grid" id="savesGrid"></div>
-
-        <div class="empty-state hidden" id="emptySaves">
-          <div class="empty-rat">🐀</div>
-          <h2>Nenhum save ainda</h2>
-          <p>Adicione uma ROM para criar seu primeiro card de jogo.</p>
-          <button class="primary-button" id="emptyAddButton">Adicionar ROM</button>
-        </div>
-      </section>
-
-      <section class="page" id="page-new-rom">
-        <div class="panel">
-          <h2>Adicionar nova ROM</h2>
-          <p>
-            Escolha uma ROM do seu PC. Por enquanto o app cria um card de save.
-            Depois, no Tauri, vamos abrir o jogo real.
-          </p>
-
-          <div class="upload-box" id="uploadBox">
-            <div class="upload-icon">+</div>
-            <strong>Clique para escolher uma ROM</strong>
-            <small>GBA, DS, 3DS, N64, NES, SNES, PS1 e outros</small>
-          </div>
-
-          <input type="file" id="romInput" hidden />
-        </div>
-      </section>
-
-      <section class="page" id="page-emulators">
-        <div class="panel-row">
-          <div>
-            <h2>Emuladores instalados</h2>
-            <p>Esses são os motores que o Ratu vai usar por trás dos saves.</p>
-          </div>
-
-          <button class="secondary-button" id="addEmulatorButton">
-            + Adicionar emulador
+          <button class="menu-button" data-page="saves" type="button">
+            <span>▣</span>
+            Saves
           </button>
-        </div>
+          <button class="menu-button" data-page="new-rom" type="button">
+            <span>＋</span>
+            Nova ROM
+          </button>
+          <button class="menu-button" data-page="emulators" type="button">
+            <span>◈</span>
+            Emuladores
+          </button>
+          <button class="menu-button" data-page="about" type="button">
+            <span>ⓘ</span>
+            Sobre
+          </button>
+        </nav>
 
-        <div class="emulator-list" id="emulatorList"></div>
-      </section>
+        <section class="player-mini-card">
+          <div class="player-avatar">🐭</div>
+          <div>
+            <strong>Jogador</strong>
+            <small>modo local</small>
+          </div>
+        </section>
+      </aside>
 
-      <section class="page" id="page-faq">
-        <div class="faq-list">
-          <article class="faq-card">
-            <h2>O Ratu baixa ROM?</h2>
-            <p>Não. O usuário usa as próprias ROMs.</p>
-          </article>
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <h2 id="pageTitle">Home</h2>
+            <p id="pageSubtitle">Seu painel rápido do Ratu Launcher.</p>
+          </div>
+          <button class="primary-button" id="quickAddButton" type="button">+ Nova ROM</button>
+        </header>
 
-          <article class="faq-card">
-            <h2>Os saves ficam onde?</h2>
-            <p>Na versão final, ficam no PC do usuário, dentro da pasta do launcher.</p>
-          </article>
+        <section class="page active" id="page-home">
+          <section class="hero-panel">
+            <div class="hero-copy">
+              <p class="eyebrow">Ratu Launcher</p>
+              <h1>Continue seu jogo sem caçar pasta.</h1>
+              <p>Seus saves, ROMs e emuladores organizados em um lugar só.</p>
+              <div class="hero-actions">
+                <button class="primary-button" id="homeContinueButton" type="button">Continuar último save</button>
+                <button class="secondary-button" id="homeAddRomButton" type="button">Adicionar ROM</button>
+              </div>
+            </div>
+            <div class="hero-rat" aria-hidden="true">🐀</div>
+          </section>
 
-          <article class="faq-card">
-            <h2>O site e o launcher vão conectar?</h2>
-            <p>Sim. O site vai enxergar o Ratu Launcher quando ele estiver aberto.</p>
-          </article>
+          <section class="stats-grid">
+            <article class="stat-card">
+              <span id="homeSaveCount">0</span>
+              <p>Saves</p>
+            </article>
+            <article class="stat-card">
+              <span id="homeEmulatorCount">0</span>
+              <p>Emuladores</p>
+            </article>
+            <article class="stat-card">
+              <span id="homeInstalledCount">0</span>
+              <p>Prontos</p>
+            </article>
+          </section>
 
-          <article class="faq-card">
-            <h2>Vai ter conta Google?</h2>
-            <p>Só no futuro, se a gente quiser backup na nuvem.</p>
-          </article>
-        </div>
-      </section>
-    </section>
-  </main>
+          <section class="home-feature-grid" id="homeFeatureGrid"></section>
 
-  <div class="toast hidden" id="toast"></div>
+          <section class="section-block">
+            <div class="section-heading">
+              <div>
+                <h2>Saves recentes</h2>
+                <p>Os últimos jogos adicionados aparecem aqui.</p>
+              </div>
+              <button class="ghost-button" id="viewAllSavesButton" type="button">Ver todos</button>
+            </div>
+            <div class="recent-saves-grid" id="recentSavesGrid"></div>
+          </section>
 
-  <script src="main.js"></script>
-</body>
+          <section class="section-block">
+            <div class="section-heading">
+              <div>
+                <h2>Emuladores rápidos</h2>
+                <p>Os principais motores do Ratu.</p>
+              </div>
+              <button class="ghost-button" id="homeEmulatorsButton" type="button">Gerenciar</button>
+            </div>
+            <div class="home-emulators-grid" id="homeEmulatorsGrid"></div>
+          </section>
+        </section>
+
+        <section class="page" id="page-saves">
+          <section class="section-block saves-tools">
+            <div class="section-heading">
+              <div>
+                <h2>Biblioteca</h2>
+                <p>Escolha o jogo, o save slot e jogue.</p>
+              </div>
+              <button class="primary-button" id="savesAddRomButton" type="button">Adicionar ROM</button>
+            </div>
+            <div class="toolbar-line">
+              <input id="saveSearchInput" class="search-input" placeholder="Procurar jogo..." />
+              <button id="filterRecentButton" class="secondary-button" type="button">Recentes</button>
+              <button id="clearSearchButton" class="secondary-button" type="button">Limpar</button>
+            </div>
+          </section>
+
+          <div class="saves-grid" id="savesGrid"></div>
+
+          <section class="empty-state hidden" id="emptySaves">
+            <div class="empty-rat">🐁</div>
+            <h2>Nenhum save ainda</h2>
+            <p>Adicione uma ROM para criar seu primeiro card de jogo.</p>
+            <button class="primary-button" id="emptyAddButton" type="button">Adicionar ROM</button>
+          </section>
+        </section>
+
+        <section class="page" id="page-new-rom">
+          <section class="upload-layout">
+            <div class="upload-box" id="uploadBox" role="button" tabindex="0">
+              <div class="upload-plus">＋</div>
+              <h2>Adicionar nova ROM</h2>
+              <p>Clique para escolher uma ROM GBA, DS, 3DS, N64, NES, SNES, PS1, PSP, Wii e outros.</p>
+            </div>
+
+            <aside class="upload-info">
+              <h3>Como funciona?</h3>
+              <p>O Ratu cria um card na biblioteca, detecta o sistema e usa uma capa padrão do emulador.</p>
+              <p>Depois você pode trocar a capa por uma imagem personalizada.</p>
+              <p>ROMs não vêm no app. Cada usuário usa os próprios arquivos.</p>
+            </aside>
+          </section>
+          <input type="file" id="romInput" class="hidden" accept=".nes,.smc,.sfc,.gb,.gbc,.gba,.nds,.dsi,.n64,.z64,.v64,.cue,.bin,.iso,.3ds,.cci,.cxi,.cia,.psp,.cso,.gcm,.wbfs" />
+        </section>
+
+        <section class="page" id="page-emulators">
+          <section class="section-block">
+            <div class="section-heading">
+              <div>
+                <h2>Emuladores instalados</h2>
+                <p>Esses são os motores que o Ratu usa por trás dos saves.</p>
+              </div>
+              <div class="button-row">
+                <button class="secondary-button" id="resetDefaultEmulatorsButton" type="button">Reparar padrões</button>
+                <button class="primary-button" id="addEmulatorButton" type="button">+ Adicionar emulador</button>
+              </div>
+            </div>
+            <div class="emulator-list" id="emulatorList"></div>
+          </section>
+        </section>
+
+        <section class="page" id="page-about">
+          <section class="about-panel">
+            <div>
+              <p class="eyebrow">Sobre</p>
+              <h1>Ratu Launcher</h1>
+              <p>Um launcher local para organizar ROMs, saves e emuladores de um jeito simples.</p>
+              <p>Feito pra ser bonito, direto e sem aquela confusão de configurar tudo na unha.</p>
+            </div>
+            <div class="about-rat">🐀</div>
+          </section>
+
+          <section class="about-grid">
+            <article>
+              <h3>O Ratu baixa ROM?</h3>
+              <p>Não. O usuário usa as próprias ROMs.</p>
+            </article>
+            <article>
+              <h3>Onde ficam os saves?</h3>
+              <p>No PC do usuário, dentro da pasta do launcher e/ou do emulador usado.</p>
+            </article>
+            <article>
+              <h3>Tem capa personalizada?</h3>
+              <p>Sim. Sem capa, o Ratu usa a imagem padrão do emulador.</p>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast hidden" id="toast"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
 </html>

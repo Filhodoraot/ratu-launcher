@@ -1,17 +1,10 @@
-// app/data/ratu-assets.js
-// Mapa central dos assets do Ratu Launcher.
-// Copie a pasta do repo "Assets-Ratu-launcher" para:
-// app/assets/images/Assets-Ratu-launcher/
-
 const BASE = "./assets/images/Assets-Ratu-launcher";
+const IMG = "./assets/images";
 
 const asset = (path) => encodeURI(`${BASE}/${path}`);
+const image = (path) => encodeURI(`${IMG}/${path}`);
 
 export const RATU_ASSETS = {
-  shell: {
-    fullAppBackground: asset("ImagemGeral/add8cb03-c912-48ea-ab0b-1b6a483278a5.png"),
-  },
-
   home: {
     cardSaves: asset("RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/01_card_saves_model.png"),
     cardNovaRom: asset("RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/02_card_nova_rom_model.png"),
@@ -34,7 +27,6 @@ export const RATU_ASSETS = {
     saveRowModel: asset("PACOTE_1_RATU_ASSETS_ATUALIZADO/08_save_row_model.png"),
     playerCardEmpty: asset("PACOTE_1_RATU_ASSETS_ATUALIZADO/09_player_card_empty.png"),
     sleepingRat: asset("PACOTE_1_RATU_ASSETS_ATUALIZADO/10_sleeping_rat.png"),
-    extraRat: asset("PACOTE_1_RATU_ASSETS_ATUALIZADO/image-removebg-preview%20%2832%29.png"),
   },
 
   rats: {
@@ -42,30 +34,25 @@ export const RATU_ASSETS = {
     left: asset("RATOS_DIREITA_ESQUERDA_SEM_FUNDO/rato_esquerda_sem_fundo.png"),
   },
 
-  // O ideal é você deixar esses arquivos com esses nomes.
-  // Caso eles estejam em outra pasta, só muda o caminho aqui.
   emulators: {
-    mgba: "./assets/images/emulators/mGBA.png",
-    melonds: "./assets/images/emulators/melonDS.png",
-    azahar: "./assets/images/emulators/Azahar.png",
-    mupen64plus: "./assets/images/emulators/Mupen64.png",
-    duckstation: "./assets/images/emulators/DuckStation.png",
-    mesens: "./assets/images/emulators/Mesen-S.png",
-    fceux: "./assets/images/emulators/FCEUX.png",
-    ppsspp: "./assets/images/emulators/PPSSPP.png",
-    dolphin: "./assets/images/emulators/Dolphin.png",
-    default: asset("RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/06_card_emulator_model.png"),
+    mgba: image("emulators/mGBA.png"),
+    melonds: image("emulators/melonDS.png"),
+    azahar: image("emulators/Azahar.png"),
+    mupen64plus: image("emulators/Mupen64.png"),
+    duckstation: image("emulators/DuckStation.png"),
+    snes9x: image("emulators/Mesen-S.png"),
+    nestopia: image("emulators/FCEUX.png"),
+    ppsspp: image("emulators/PPSSPP.png"),
+    dolphin: image("emulators/Dolphin.png"),
+    manual: asset("RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/06_card_emulator_model.png"),
   },
 };
 
 export function getEmulatorImage(emulatorId) {
-  return RATU_ASSETS.emulators[emulatorId] || RATU_ASSETS.emulators.default;
+  return RATU_ASSETS.emulators[emulatorId] || RATU_ASSETS.emulators.manual;
 }
 
 export function getGameCover(game) {
-  // Capa personalizada do usuário ganha prioridade.
   if (game?.coverPath) return game.coverPath;
-
-  // Sem capa personalizada, usa o sistema/emulador.
-  return getEmulatorImage(game?.emulatorId || game?.system || "default");
+  return getEmulatorImage(game?.emulatorId || "manual");
 }
