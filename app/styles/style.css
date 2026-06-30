@@ -1,87 +1,846 @@
-const BASE = "./assets/images";
-const RATU_BASE = `${BASE}/Assets-Ratu-launcher`;
-
-export const RATU_ASSETS = {
-  geral: {
-    logoRat: `${RATU_BASE}/ImagemGeral/add8cb03-c912-48ea-ab0b-1b6a483278a5.png`,
-    ratRight: `${RATU_BASE}/RATOS_DIREITA_ESQUERDA_SEM_FUNDO/rato_direita_sem_fundo.png`,
-    ratLeft: `${RATU_BASE}/RATOS_DIREITA_ESQUERDA_SEM_FUNDO/rato_esquerda_sem_fundo.png`,
-    sleepingRat: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/10_sleeping_rat.png`,
-  },
-
-  home: {
-    cardSaves: `${RATU_BASE}/RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/01_card_saves_model.png`,
-    cardNovaRom: `${RATU_BASE}/RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/02_card_nova_rom_model.png`,
-    cardSobre: `${RATU_BASE}/RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/03_card_sobre_model.png`,
-    gameCard: `${RATU_BASE}/RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/04_game_card_model.png`,
-    emulatorCard: `${RATU_BASE}/RATU_LOTE2_ORGANIZADO_SEM_FUNDO/assets_gerais/06_card_emulator_model.png`,
-  },
-
-  saves: {
-    folderCard: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/02_folder_card_rat.png`,
-    searchBar: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/03_search_bar.png`,
-    filterButton: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/04_filter_button.png`,
-    newFolderButton: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/05_new_folder_button.png`,
-    importButton: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/06_import_button.png`,
-    syncButton: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/07_sync_button.png`,
-    row: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/08_save_row_model.png`,
-    playerCard: `${RATU_BASE}/PACOTE_1_RATU_ASSETS_ATUALIZADO/09_player_card_empty.png`,
-  },
-
-  panels: {
-    darkPanel: `${RATU_BASE}/RATU_LOTE3_CORRIGIDO_SEM_FUNDO/01_painel_de_ui_com_fundo_transparente.png`,
-    modernPanel: `${RATU_BASE}/RATU_LOTE3_CORRIGIDO_SEM_FUNDO/02_painel_ui_moderno_com_bordas_arredondadas.png`,
-    emulatorPanel: `${RATU_BASE}/RATU_LOTE4_EMULADORES_SEM_FUNDO/01_painel_de_ui_com_gradiente_suave.png`,
-    emulatorInfo: `${RATU_BASE}/RATU_LOTE4_EMULADORES_SEM_FUNDO/02_painel_de_ui_com_ícone_de_info.png`,
-    emulatorCard: `${RATU_BASE}/RATU_LOTE4_EMULADORES_SEM_FUNDO/03_cartão_ui_moderno_em_modo_escuro.png`,
-  },
-
-  emulators: {
-    mgba: `${BASE}/emulators/mGBA.png`,
-    melonds: `${BASE}/emulators/melonDS.png`,
-    mupen64plus: `${BASE}/emulators/Mupen64.png`,
-    azahar: `${BASE}/emulators/Azahar.png`,
-    snes9x: `${BASE}/emulators/Mesen-S.png`,
-    nestopia: `${BASE}/emulators/FCEUX.png`,
-    duckstation: `${BASE}/emulators/DuckStation.png`,
-    ppsspp: `${BASE}/emulators/PPSSPP.png`,
-    dolphin: `${BASE}/emulators/Dolphin.png`,
-    manual: `${BASE}/emulators/mGBA.png`,
-  },
-};
-
-export function getEmulatorImage(emulatorId) {
-  return RATU_ASSETS.emulators[emulatorId] || RATU_ASSETS.emulators.manual;
+:root {
+  --bg: #06070a;
+  --text: #f6f0f0;
+  --muted: #a9a1a4;
+  --pink: #ffa0ad;
+  --green: #7ee06d;
+  --danger: #ff7d7d;
+  --sidebar: 330px;
 }
 
-export function getDisplayImage(path) {
-  if (!path) return "";
-
-  const value = String(path);
-
-  if (
-    value.startsWith("./") ||
-    value.startsWith("/") ||
-    value.startsWith("http") ||
-    value.startsWith("data:") ||
-    value.startsWith("blob:")
-  ) {
-    return value;
-  }
-
-  const convertFileSrc = window.__TAURI__?.core?.convertFileSrc;
-
-  if (typeof convertFileSrc === "function") {
-    return convertFileSrc(value);
-  }
-
-  return `file:///${value.replaceAll("\\", "/")}`;
+* {
+  box-sizing: border-box;
 }
 
-export function getGameCover(game) {
-  const customCover = getDisplayImage(game?.coverPath);
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #050608;
+  color: var(--text);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+}
 
-  if (customCover) return customCover;
+button,
+input,
+select {
+  font: inherit;
+}
 
-  return getEmulatorImage(game?.emulatorId);
+button {
+  cursor: pointer;
+  color: inherit;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.splash {
+  width: 100vw;
+  height: 100vh;
+  background: #050608;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+}
+
+.splash img {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+}
+
+.splash h1,
+.splash p {
+  display: none;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar) 1fr;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(255, 160, 173, 0.08), transparent 32%),
+    #06070a;
+}
+
+.sidebar {
+  height: 100vh;
+  padding: 48px 28px 26px;
+  background: rgba(8, 9, 12, 0.96);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  margin-bottom: 42px;
+  display: grid;
+  place-items: center;
+}
+
+.brand-rat {
+  width: 210px !important;
+  height: 210px !important;
+  object-fit: contain !important;
+}
+
+.brand h1,
+.brand span {
+  display: none;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 14px;
+}
+
+.nav-item {
+  width: 250px;
+  height: 62px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  position: relative;
+}
+
+.nav-item span,
+.nav-item:not(:has(img)) {
+  font-size: 0;
+}
+
+.nav-img {
+  width: 250px;
+  height: 62px;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.player-card {
+  margin-top: auto;
+  width: 250px;
+  height: 84px;
+  padding: 0;
+  background: transparent;
+  position: relative;
+}
+
+.player-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--player-card) center / contain no-repeat;
+}
+
+.player-card img,
+.player-card div,
+.player-card button {
+  position: relative;
+  z-index: 2;
+}
+
+.player-card img {
+  width: 54px !important;
+  height: 54px !important;
+  object-fit: contain;
+  position: absolute;
+  left: 18px;
+  top: 15px;
+}
+
+.player-card div {
+  position: absolute;
+  left: 82px;
+  top: 22px;
+}
+
+.player-card strong {
+  display: block;
+  font-size: 15px;
+}
+
+.player-card small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.player-card button {
+  position: absolute;
+  right: 16px;
+  top: 26px;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+}
+
+.content {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  height: 138px;
+  padding: 48px 52px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.topbar h2 {
+  margin: 0;
+  font-size: 44px;
+  line-height: 1;
+}
+
+.topbar p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.window-actions {
+  display: flex;
+  gap: 18px;
+}
+
+.window-actions button {
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+}
+
+.page {
+  display: none;
+  height: calc(100vh - 138px);
+  overflow: auto;
+  padding: 0 52px 48px;
+}
+
+.page.active {
+  display: block;
+}
+
+.page::-webkit-scrollbar {
+  width: 9px;
+}
+
+.page::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+.asset-base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* HOME TOP CARDS */
+
+.home-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(310px, 1fr));
+  gap: 22px;
+}
+
+.home-feature-card {
+  position: relative;
+  border: 0;
+  background: transparent;
+  aspect-ratio: 1000 / 621;
+  min-height: 220px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.home-feature-card .asset-title {
+  position: absolute;
+  z-index: 2;
+  left: 8.2%;
+  top: 51.5%;
+  width: 28%;
+  height: 6%;
+  display: flex;
+  align-items: center;
+  font-size: clamp(14px, 1.3vw, 20px);
+  font-weight: 800;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.home-feature-card .asset-desc {
+  position: absolute;
+  z-index: 2;
+  left: 8.2%;
+  top: 61.2%;
+  width: 58%;
+  height: 14%;
+  color: var(--muted);
+  font-size: clamp(11px, 1vw, 15px);
+  line-height: 1.25;
+  overflow: hidden;
+}
+
+.home-feature-card .asset-action {
+  position: absolute;
+  z-index: 2;
+  left: 13.4%;
+  top: 83.4%;
+  width: 20%;
+  height: 6%;
+  display: grid;
+  place-items: center;
+  font-size: clamp(10px, 0.9vw, 13px);
+  font-weight: 700;
+}
+
+/* TITLES */
+
+.section-title-row {
+  margin: 32px 0 18px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.section-title-row h3 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.section-title-row span {
+  display: block;
+  width: 30px;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--pink);
+}
+
+.ghost-button,
+.outline-button,
+.asset-button,
+.primary-button,
+.row-button,
+.play-button,
+.danger-button {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0 18px;
+}
+
+.primary-button,
+.play-button {
+  color: #ffd1d8;
+  border-color: rgba(255, 160, 173, 0.55);
+  background: rgba(255, 160, 173, 0.12);
+}
+
+.danger-button {
+  color: var(--danger);
+}
+
+/* GAME CARDS */
+
+.recent-games-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 170px);
+  gap: 18px;
+}
+
+.game-card {
+  width: 170px;
+  height: 235px;
+  position: relative;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.game-cover-box {
+  position: absolute;
+  z-index: 2;
+  left: 7.4%;
+  top: 5.6%;
+  width: 85.8%;
+  height: 70.2%;
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.emulator-badge {
+  position: absolute;
+  left: 7px;
+  bottom: 7px;
+  max-width: calc(100% - 14px);
+  min-height: 26px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+
+.emulator-badge img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.game-title {
+  position: absolute;
+  z-index: 2;
+  left: 8%;
+  top: 79.3%;
+  width: 70%;
+  height: 7%;
+  font-size: 14px;
+  font-weight: 800;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.game-system {
+  position: absolute;
+  z-index: 2;
+  left: 8.8%;
+  top: 90.4%;
+  width: 24%;
+  height: 4.8%;
+  font-size: 10px;
+  color: #1d1114;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.game-card .dots {
+  position: absolute;
+  z-index: 2;
+  right: 10%;
+  top: 83%;
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 22px;
+}
+
+/* HOME EMULATOR CARDS */
+
+.home-emulators-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 300px);
+  gap: 18px;
+}
+
+.home-emulator-card {
+  width: 300px;
+  height: 118px;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-emulator-card .emu-img {
+  position: absolute;
+  z-index: 2;
+  left: 5.5%;
+  top: 13%;
+  width: 31%;
+  height: 74%;
+  object-fit: contain;
+}
+
+.home-emulator-card .emu-name {
+  position: absolute;
+  z-index: 2;
+  left: 42.5%;
+  top: 26%;
+  width: 44%;
+  height: 13%;
+  font-weight: 800;
+  font-size: 15px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.home-emulator-card .emu-version {
+  position: absolute;
+  z-index: 2;
+  left: 42.5%;
+  top: 47%;
+  width: 36%;
+  height: 11%;
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.home-emulator-card .emu-status {
+  position: absolute;
+  z-index: 2;
+  left: 72%;
+  top: 70%;
+  width: 20%;
+  height: 11%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: var(--green);
+}
+
+/* SAVES */
+
+.saves-layout.active {
+  display: grid;
+  grid-template-columns: minmax(640px, 1fr) 390px;
+  gap: 28px;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto auto auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.search-box {
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.folders-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 170px);
+  gap: 18px;
+}
+
+.folder-card {
+  width: 170px;
+  height: 110px;
+  position: relative;
+  overflow: hidden;
+}
+
+.folder-title {
+  position: absolute;
+  z-index: 2;
+  left: 11%;
+  top: 65%;
+  width: 60%;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.folder-count {
+  position: absolute;
+  z-index: 2;
+  left: 11%;
+  top: 82%;
+  width: 60%;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.saves-list {
+  display: grid;
+  gap: 12px;
+}
+
+.save-row {
+  position: relative;
+  height: 104px;
+  overflow: hidden;
+}
+
+.save-row-cover {
+  position: absolute;
+  z-index: 2;
+  left: 2.2%;
+  top: 15%;
+  width: 20%;
+  height: 70%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.save-row-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.save-row-info {
+  position: absolute;
+  z-index: 2;
+  left: 25%;
+  top: 18%;
+  width: 40%;
+}
+
+.save-row-info h4 {
+  margin: 0 0 5px;
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.save-row-info p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.save-row .play-button {
+  position: absolute;
+  z-index: 2;
+  right: 170px;
+  top: 32px;
+}
+
+.save-row .row-button {
+  position: absolute;
+  z-index: 2;
+  right: 72px;
+  top: 32px;
+}
+
+.save-row .menu-button {
+  position: absolute;
+  z-index: 2;
+  right: 20px;
+  top: 32px;
+  width: 42px;
+  min-height: 42px;
+  padding: 0;
+}
+
+.sort-select {
+  height: 44px;
+  color: var(--text);
+  background: #101115;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0 14px;
+}
+
+.save-detail-panel {
+  position: relative;
+  overflow: hidden;
+  min-height: 520px;
+  padding: 22px;
+  border-radius: 24px;
+}
+
+.save-detail-panel > * {
+  position: relative;
+  z-index: 2;
+}
+
+.detail-cover {
+  width: 100%;
+  height: 190px;
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.detail-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* EMULATORS PAGE */
+
+.emulator-actions-top {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.emulator-info-panel {
+  display: none;
+}
+
+.emulator-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 236px);
+  gap: 24px;
+  align-items: start;
+}
+
+.emulator-card {
+  width: 236px;
+  height: 318px;
+  position: relative;
+  overflow: hidden;
+}
+
+.emulator-card .emu-device {
+  position: absolute;
+  z-index: 2;
+  left: 8%;
+  top: 6%;
+  width: 84%;
+  height: 39%;
+  object-fit: contain;
+}
+
+.emulator-card .emu-card-name {
+  position: absolute;
+  z-index: 2;
+  left: 8%;
+  top: 54.5%;
+  width: 60%;
+  height: 6%;
+  font-size: 16px;
+  font-weight: 800;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.emulator-card .emu-card-version {
+  position: absolute;
+  z-index: 2;
+  left: 8%;
+  top: 63%;
+  width: 44%;
+  height: 5%;
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.emulator-card .emu-card-status {
+  position: absolute;
+  z-index: 2;
+  left: 21%;
+  top: 75.8%;
+  width: 28%;
+  height: 5.5%;
+  display: grid;
+  place-items: center;
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.emulator-card .config-btn {
+  position: absolute;
+  z-index: 2;
+  left: 8%;
+  bottom: 5.8%;
+  width: 34%;
+  height: 7.5%;
+  font-size: 0;
+  border: 0;
+  background: transparent;
+}
+
+.emulator-card .remove-btn {
+  position: absolute;
+  z-index: 2;
+  right: 8%;
+  bottom: 5.8%;
+  width: 34%;
+  height: 7.5%;
+  font-size: 0;
+  border: 0;
+  background: transparent;
+}
+
+.tip-card,
+.sleeping-rat {
+  display: none !important;
+}
+
+/* ABOUT / NOVA ROM */
+
+.upload-box,
+.about-hero,
+.about-grid article {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+}
+
+.upload-box {
+  min-height: 430px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.upload-box img {
+  width: 170px;
+  height: 170px;
+  object-fit: contain;
+}
+
+.upload-box strong {
+  font-size: 32px;
+}
+
+.upload-box p {
+  max-width: 520px;
+  color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 999;
+  max-width: 420px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: #14161b;
+  border: 1px solid rgba(255, 160, 173, 0.45);
 }
